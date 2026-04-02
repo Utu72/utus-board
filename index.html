@@ -109,26 +109,30 @@ main { position: relative; z-index: 1; padding: 1.5rem 2rem; max-width: 1600px; 
   background: linear-gradient(135deg, #fffbf0 0%, #fef9e7 100%);
   border: 1.5px solid #f0c040;
   border-radius: var(--radius);
-  padding: 1.2rem 1.5rem;
+  padding: 2rem 2.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 16px rgba(240,192,64,0.12);
+  box-shadow: 0 4px 24px rgba(240,192,64,0.18);
   display: none;
   animation: fadeDown 0.4s ease;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
 }
-.master-msg.visible { display: flex; gap: 14px; align-items: flex-start; }
-.master-msg-icon { font-size: 1.8rem; flex-shrink: 0; }
-.master-msg-body { flex: 1; }
+.master-msg.visible { display: flex; gap: 10px; }
+.master-msg-icon { font-size: 2.2rem; }
+.master-msg-body { flex: 1; width: 100%; }
 .master-msg-label {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem; letter-spacing: 0.1em;
-  color: #7a5c00; text-transform: uppercase; margin-bottom: 4px;
+  font-size: 0.72rem; letter-spacing: 0.15em;
+  color: #7a5c00; text-transform: uppercase; margin-bottom: 10px;
 }
 .master-msg-text {
   font-family: 'Playfair Display', serif;
-  font-size: 1rem; font-style: italic;
+  font-size: 1.5rem; font-weight: 700; font-style: italic;
   color: var(--ink); line-height: 1.6;
+  max-width: 860px; margin: 0 auto;
 }
-.master-msg-date { font-size: 0.75rem; color: var(--ink3); margin-top: 4px; }
+.master-msg-date { font-size: 0.75rem; color: var(--ink3); margin-top: 10px; }
 @keyframes fadeDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
 
 /* ── STATS BAR ── */
@@ -499,9 +503,8 @@ select option { background: white; }
 
   <!-- Master's Daily Message -->
   <div class="master-msg" id="masterMsg">
-    <div class="master-msg-icon">🕉️</div>
     <div class="master-msg-body">
-      <div class="master-msg-label">Master's Message · <span id="masterDate"></span></div>
+      <div class="master-msg-label">🕉️ Sadguru Whispers · <span id="masterDate"></span></div>
       <div class="master-msg-text" id="masterText"></div>
     </div>
   </div>
