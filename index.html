@@ -608,13 +608,24 @@ select option { background: white; }
       <!-- Google Calendar -->
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
         <div class="panel-title" style="margin-bottom:8px">📅 Google Calendar</div>
-        <p class="gcal-note">
-          To auto-add tasks to Google Calendar, create a free <a class="gcal-link" href="https://zapier.com" target="_blank">Zapier</a> or <a class="gcal-link" href="https://make.com" target="_blank">Make</a> automation:
-          <br>Trigger: New row in a Google Sheet → Action: Create Google Calendar event.
-          <br><br>Or paste your Google Calendar webhook URL below:
-        </p>
-        <input type="text" id="gcalWebhook" class="field-input" placeholder="https://hooks.zapier.com/..." style="margin-top:8px;width:100%;font-size:0.8rem" oninput="saveGcalSettings()">
-        <div class="toggle-row" style="margin-top:6px"><input type="checkbox" id="gcalEnabled" onchange="saveGcalSettings()"><label for="gcalEnabled">Send tasks with due dates to Calendar</label></div>
+        <div id="gcalSignedOut">
+          <p class="gcal-note">Sign in with Google to sync all your calendars with Utu's Board.</p>
+          <button class="btn btn-ghost" onclick="gcalSignIn()" style="margin-top:8px;font-size:0.78rem;display:flex;align-items:center;gap:6px">
+            <img src="https://www.google.com/favicon.ico" width="14" height="14"> Sign in with Google
+          </button>
+        </div>
+        <div id="gcalSignedIn" style="display:none">
+          <div id="gcalUserInfo" style="font-size:0.82rem;color:var(--ink2);margin-bottom:8px"></div>
+          <div class="toggle-row"><input type="checkbox" id="gcalShowEvents" onchange="saveGcalSettings()" checked><label for="gcalShowEvents">Show calendar events on board</label></div>
+          <div class="toggle-row"><input type="checkbox" id="gcalSyncTasks" onchange="saveGcalSettings()" checked><label for="gcalSyncTasks">Add tasks with due dates to Calendar</label></div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="loadGcalEvents()" style="font-size:0.75rem">🔄 Sync Now</button>
+            <button class="btn btn-ghost" onclick="gcalSignOut()" style="font-size:0.75rem;color:var(--overdue)">Sign Out</button>
+          </div>
+          <div id="gcalStatus" style="font-size:0.75rem;color:var(--ink3);margin-top:6px;font-style:italic"></div>
+        </div>
+        <input type="hidden" id="gcalWebhook">
+        <input type="hidden" id="gcalEnabled" value="true">
       </div>
     </div>
 
@@ -788,8 +799,8 @@ async function addTask() {
   save();
   render();
 
-  // Send to Google Calendar if enabled
-  if (due && settings.gcalEnabled && settings.gcalWebhook) sendToGcal(task);
+  // Send to Google Calendar if signed in
+  if (due && gcalAccessToken && Date.now() < gcalTokenExpiry) addEventToGcal(task);
 
   document.getElementById('taskInput').value = '';
   document.getElementById('dueInput').value  = '';
@@ -1321,6 +1332,167 @@ loadFromGist();
 setInterval(updateClock,  60000);
 setInterval(checkReminders, 60000);
 setInterval(loadFromGist,    8000);
+</script>
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<script>
+// ═══════════════════════════════════════════
+//  GOOGLE CALENDAR OAUTH
+// ═══════════════════════════════════════════
+const GCAL_CLIENT_ID = '426370887676-25vcukgouubp5jp0pbh5h88hibshfp41.apps.googleusercontent.com';
+const GCAL_SCOPES    = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events';
+
+let gcalTokenClient = null;
+let gcalAccessToken = localStorage.getItem('kb_gcal_token') || null;
+let gcalTokenExpiry = parseInt(localStorage.getItem('kb_gcal_expiry') || '0');
+
+function gcalInit() {
+  if (!window.google) return;
+  gcalTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GCAL_CLIENT_ID,
+    scope:     GCAL_SCOPES,
+    callback:  (resp) => {
+      if (resp.error) { console.error('GCal auth error:', resp); return; }
+      gcalAccessToken = resp.access_token;
+      gcalTokenExpiry = Date.now() + (resp.expires_in * 1000);
+      localStorage.setItem('kb_gcal_token',  gcalAccessToken);
+      localStorage.setItem('kb_gcal_expiry', gcalTokenExpiry);
+      gcalShowSignedIn();
+      loadGcalEvents();
+    }
+  });
+  // Auto-restore session if token still valid
+  if (gcalAccessToken && Date.now() < gcalTokenExpiry) {
+    gcalShowSignedIn();
+    loadGcalEvents();
+  }
+}
+
+function gcalSignIn() {
+  if (!gcalTokenClient) { showToast('Error', 'Google API not loaded yet. Try again in a moment.', 'error'); return; }
+  gcalTokenClient.requestAccessToken({ prompt: '' });
+}
+
+function gcalSignOut() {
+  if (gcalAccessToken) google.accounts.oauth2.revoke(gcalAccessToken);
+  gcalAccessToken = null; gcalTokenExpiry = 0;
+  localStorage.removeItem('kb_gcal_token');
+  localStorage.removeItem('kb_gcal_expiry');
+  document.getElementById('gcalSignedIn').style.display  = 'none';
+  document.getElementById('gcalSignedOut').style.display = 'block';
+  // Remove calendar events from board
+  tasks = tasks.filter(t => t.source !== 'gcal');
+  save(); render();
+  showToast('Google Calendar', 'Signed out', 'default');
+}
+
+function gcalShowSignedIn() {
+  document.getElementById('gcalSignedOut').style.display = 'none';
+  document.getElementById('gcalSignedIn').style.display  = 'block';
+  document.getElementById('gcalUserInfo').innerHTML = '✅ Connected to Google Calendar';
+}
+
+async function loadGcalEvents() {
+  if (!gcalAccessToken || Date.now() > gcalTokenExpiry) { gcalSignIn(); return; }
+  const statusEl = document.getElementById('gcalStatus');
+  if (statusEl) statusEl.textContent = 'Syncing calendars...';
+
+  try {
+    // Get all calendars
+    const calResp = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+      headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+    });
+    const calData = await calResp.json();
+    if (!calData.items) { if(statusEl) statusEl.textContent = 'No calendars found.'; return; }
+
+    const now     = new Date();
+    const maxTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // next 30 days
+    let allEvents = [];
+
+    // Fetch events from each calendar
+    for (const cal of calData.items) {
+      if (cal.selected === false) continue;
+      try {
+        const evResp = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events?` +
+          `timeMin=${now.toISOString()}&timeMax=${maxTime.toISOString()}&singleEvents=true&orderBy=startTime&maxResults=50`, {
+          headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+        });
+        const evData = await evResp.json();
+        if (evData.items) {
+          allEvents = allEvents.concat(evData.items.map(e => ({...e, calendarName: cal.summary, calendarColor: cal.backgroundColor})));
+        }
+      } catch(e) {}
+    }
+
+    // Remove old gcal tasks and add fresh ones
+    tasks = tasks.filter(t => t.source !== 'gcal');
+
+    for (const ev of allEvents) {
+      const startDt = ev.start?.dateTime || ev.start?.date;
+      if (!startDt) continue;
+      const category = classifyTask(ev.summary || '');
+      tasks.push({
+        id:           'gcal_' + ev.id,
+        text:         ev.summary || '(No title)',
+        category,
+        due:          startDt,
+        priority:     'medium',
+        recur:        null,
+        done:         false,
+        created:      new Date().toISOString(),
+        aiClassified: true,
+        reminderSent: false,
+        gcalSent:     true,
+        gcalId:       ev.id,
+        gcalCalendar: ev.calendarName,
+        source:       'gcal'
+      });
+    }
+
+    localStorage.setItem('kb_tasks', JSON.stringify(tasks));
+    render();
+    if (statusEl) statusEl.textContent = `✓ ${allEvents.length} events synced from ${calData.items.length} calendars`;
+    showToast('📅 Calendar Synced', `${allEvents.length} events loaded`, 'success');
+  } catch(e) {
+    if (statusEl) statusEl.textContent = 'Sync failed: ' + e.message;
+    console.error('GCal load error:', e);
+  }
+}
+
+async function addEventToGcal(task) {
+  if (!gcalAccessToken || Date.now() > gcalTokenExpiry) return;
+  if (!task.due || task.source === 'gcal') return;
+  try {
+    const start = new Date(task.due);
+    const end   = new Date(start.getTime() + 60 * 60 * 1000); // 1 hour duration
+    await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method:  'POST',
+      headers: { 'Authorization': 'Bearer ' + gcalAccessToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        summary:     task.text,
+        description: `Category: ${task.category} | Priority: ${task.priority} | Source: Utu's Board`,
+        start: { dateTime: start.toISOString() },
+        end:   { dateTime: end.toISOString() },
+        reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 30 }] }
+      })
+    });
+    task.gcalSent = true;
+    addLog('📅', `Added to Google Calendar: ${task.text.slice(0,40)}`);
+  } catch(e) { console.error('GCal add event error:', e); }
+}
+
+function saveGcalSettings() {
+  settings.gcalShowEvents = document.getElementById('gcalShowEvents')?.checked;
+  settings.gcalSyncTasks  = document.getElementById('gcalSyncTasks')?.checked;
+  localStorage.setItem('kb_settings', JSON.stringify(settings));
+}
+
+// Init Google API when loaded
+window.addEventListener('load', () => {
+  if (window.google) gcalInit();
+  else setTimeout(gcalInit, 2000);
+});
 </script>
 </body>
 </html>
