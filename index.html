@@ -1466,7 +1466,7 @@ function setGcalDays(days, btn) {
 function renderCalendarList() {
   const container = document.getElementById('gcalCalendarList');
   if (!container || !gcalAllCals.length) return;
-  const catOptions = CATEGORIES.map(c => `<option value="${c.id}" ${calCategoryMap[cal?.id]===c.id?'selected':''}>${c.icon} ${c.id}</option>`).join('');
+  // catOptions built per-calendar inside the map below
   container.innerHTML = gcalAllCals.map(cal => {
     const isSelected = gcalSelectedCals.length === 0 || gcalSelectedCals.includes(cal.id);
     const assignedCat = calCategoryMap[cal.id] || 'auto';
