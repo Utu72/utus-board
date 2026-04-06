@@ -30,6 +30,7 @@
   --office-bg:   #eff6ff; --office-border:#60a5fa; --office-text:  #1e3a8a; --office-light:#f5f9ff;
   --shopping-bg: #f0fdf4; --shopping-border:#4ade80;--shopping-text:#14532d;--shopping-light:#f7fff9;
   --miscl-bg:    #f8f8f8; --miscl-border: #94a3b8; --miscl-text:   #334155; --miscl-light: #fafafa;
+  --bapa-bg:     #fff8f0; --bapa-border:  #f97316; --bapa-text:    #7c2d12; --bapa-light:  #fffaf5;
 
   /* Priority */
   --p-high:   #ef4444; --p-high-bg:   #fef2f2;
@@ -317,6 +318,7 @@ select option { background: white; }
 .cat-card[data-cat="Office"]   { border-top: 3px solid var(--office-border); }
 .cat-card[data-cat="Shopping"] { border-top: 3px solid var(--shopping-border); }
 .cat-card[data-cat="Miscl"]    { border-top: 3px solid var(--miscl-border); }
+.cat-card[data-cat="BAPA"]     { border-top: 4px solid var(--bapa-border); box-shadow: 0 4px 20px rgba(249,115,22,0.1); }
 
 .cat-header {
   padding: 0.9rem 1.1rem 0.7rem;
@@ -335,6 +337,7 @@ select option { background: white; }
 .cat-card[data-cat="Office"]   .cat-title { color: var(--office-text); }
 .cat-card[data-cat="Shopping"] .cat-title { color: var(--shopping-text); }
 .cat-card[data-cat="Miscl"]    .cat-title { color: var(--miscl-text); }
+.cat-card[data-cat="BAPA"]     .cat-title { color: var(--bapa-text); }
 
 .cat-count {
   font-family: 'DM Mono', monospace; font-size: 0.72rem;
@@ -541,6 +544,7 @@ select option { background: white; }
           <option value="Office">💼 Office</option>
           <option value="Shopping">🛒 Shopping</option>
           <option value="Miscl">📌 Miscl</option>
+          <option value="BAPA">🕉️ BAPA</option>
         </select>
       </div>
       <div>
@@ -616,9 +620,24 @@ select option { background: white; }
         </div>
         <div id="gcalSignedIn" style="display:none">
           <div id="gcalUserInfo" style="font-size:0.82rem;color:var(--ink2);margin-bottom:8px"></div>
-          <div class="toggle-row"><input type="checkbox" id="gcalShowEvents" onchange="saveGcalSettings()" checked><label for="gcalShowEvents">Show calendar events on board</label></div>
+          
           <div class="toggle-row"><input type="checkbox" id="gcalSyncTasks" onchange="saveGcalSettings()" checked><label for="gcalSyncTasks">Add tasks with due dates to Calendar</label></div>
-          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+          
+          <div style="margin-top:10px">
+            <span class="field-label">Days to show</span>
+            <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+              <button class="recur-btn active" id="days-btn-7"  onclick="setGcalDays(7,this)">7 days</button>
+              <button class="recur-btn" id="days-btn-14" onclick="setGcalDays(14,this)">14 days</button>
+              <button class="recur-btn" id="days-btn-30" onclick="setGcalDays(30,this)">30 days</button>
+            </div>
+          </div>
+
+          <div style="margin-top:10px">
+            <span class="field-label">Your Calendars</span>
+            <div id="gcalCalendarList" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto"></div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
             <button class="btn btn-ghost" onclick="loadGcalEvents()" style="font-size:0.75rem">🔄 Sync Now</button>
             <button class="btn btn-ghost" onclick="gcalSignOut()" style="font-size:0.75rem;color:var(--overdue)">Sign Out</button>
           </div>
@@ -645,7 +664,7 @@ select option { background: white; }
     </div>
   </div>
 
-  <div class="board" id="board"></div>
+  <div class="board" id="board" style="grid-template-columns: repeat(auto-fill, minmax(270px, 1fr))"></div>
 
   <!-- Notification Log -->
   <div class="notify-log" id="notifyLog">
@@ -676,11 +695,17 @@ select option { background: white; }
 //  CONSTANTS
 // ═══════════════════════════════════════════
 const CATEGORIES = [
+  {id:'BAPA',     icon:'🕉️', special:true},
   {id:'Self',     icon:'✨'}, {id:'Sadhana', icon:'🕉️'},
   {id:'Seva',     icon:'🙏'}, {id:'Personal',icon:'👤'},
   {id:'Home',     icon:'🏠'}, {id:'Office',  icon:'💼'},
   {id:'Shopping', icon:'🛒'}, {id:'Miscl',   icon:'📌'},
 ];
+
+// Calendar → Category mapping (user configurable)
+let calCategoryMap = JSON.parse(localStorage.getItem('kb_cal_cat_map') || '{}');
+// Default: Pujya Gurudevshri's Schedule → BAPA
+// This gets set automatically when calendars are loaded
 
 const KEYWORDS = {
   Self:     ['health','exercise','gym','run','walk','sleep','diet','workout','fitness','doctor','medicine','relax','haircut','spa','therapy','myself'],
@@ -1230,6 +1255,7 @@ function render() {
 
     const card = document.createElement('div');
     card.className='cat-card'; card.dataset.cat=cat.id;
+    if (cat.id === 'BAPA') card.style.cssText = 'grid-column: 1 / -1; background: linear-gradient(135deg, #fff8f0 0%, #fff3e8 100%);';
     card.addEventListener('dragover', e=>onDragOver(e,cat.id));
     card.addEventListener('drop',     e=>onDrop(e,cat.id));
     card.innerHTML=`
@@ -1293,26 +1319,10 @@ function updateClock() {
 }
 
 // ═══════════════════════════════════════════
-//  SEED DATA
+//  SEED DATA — disabled, board starts clean
 // ═══════════════════════════════════════════
 function seedData() {
-  if (tasks.length) return;
-  const now=new Date();
-  const add=(text,cat,hOffset,priority='medium',recur=null)=>{
-    const due=hOffset!==null?new Date(now.getTime()+hOffset*3600000).toISOString():null;
-    tasks.push({id:genId(),text,category:cat,due,priority,recur,done:false,created:now.toISOString(),aiClassified:true,reminderSent:false,source:'seed',gcalSent:false});
-  };
-  add('Morning meditation 20 min','Sadhana',7,'high','daily');
-  add('Evening aarti','Sadhana',null,'high','daily');
-  add('Call Maa & Baba','Personal',24,'high','weekly');
-  add('Submit Q1 budget report','Office',-72,'high');
-  add('Team standup meeting','Office',2,'medium');
-  add('Buy vegetables & fruits','Shopping',5,'medium');
-  add('Pay electricity bill','Home',48,'high');
-  add('Evening walk 30 min','Self',10,'medium','daily');
-  add('Read 10 pages','Self',null,'low','daily');
-  add('Volunteer at food bank','Seva',120,'medium');
-  save();
+  // No demo tasks — clean slate
 }
 
 // ═══════════════════════════════════════════
@@ -1392,10 +1402,72 @@ function gcalShowSignedIn() {
   document.getElementById('gcalUserInfo').innerHTML = '✅ Connected to Google Calendar';
 }
 
+let gcalDays = parseInt(localStorage.getItem('kb_gcal_days') || '7');
+let gcalSelectedCals = JSON.parse(localStorage.getItem('kb_gcal_selected_cals') || '[]');
+let gcalAllCals = [];
+
+function setGcalDays(days, btn) {
+  gcalDays = days;
+  localStorage.setItem('kb_gcal_days', days);
+  document.querySelectorAll('[id^="days-btn-"]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadGcalEvents();
+}
+
+function renderCalendarList() {
+  const container = document.getElementById('gcalCalendarList');
+  if (!container || !gcalAllCals.length) return;
+  const catOptions = CATEGORIES.map(c => `<option value="${c.id}" ${calCategoryMap[cal?.id]===c.id?'selected':''}>${c.icon} ${c.id}</option>`).join('');
+  container.innerHTML = gcalAllCals.map(cal => {
+    const isSelected = gcalSelectedCals.length === 0 || gcalSelectedCals.includes(cal.id);
+    const assignedCat = calCategoryMap[cal.id] || 'auto';
+    const catOpts = ['<option value="auto">🤖 Auto</option>']
+      .concat(CATEGORIES.map(c => `<option value="${c.id}" ${assignedCat===c.id?'selected':''}>${c.icon} ${c.id}</option>`))
+      .concat([`<option value="SKIP" ${assignedCat==='SKIP'?'selected':''}>❌ Skip</option>`])
+      .join('');
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" ${isSelected?'checked':''}
+        onchange="toggleCalendar('${cal.id}', this.checked)"
+        style="accent-color:${cal.backgroundColor||'#4285f4'};flex-shrink:0">
+      <span style="width:10px;height:10px;border-radius:50%;background:${cal.backgroundColor||'#4285f4'};flex-shrink:0"></span>
+      <span style="font-size:0.8rem;color:var(--ink2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cal.summary}</span>
+      <select onchange="assignCalendarToCategory('${cal.id}', this.value)"
+        style="font-size:0.72rem;padding:2px 6px;border-radius:6px;background:var(--cream);border:1px solid var(--border2);color:var(--ink2);flex-shrink:0">
+        ${catOpts}
+      </select>
+    </div>`;
+  }).join('');
+}
+
+function assignCalendarToCategory(calId, catId) {
+  if (catId === 'auto') {
+    delete calCategoryMap[calId];
+  } else {
+    calCategoryMap[calId] = catId;
+  }
+  localStorage.setItem('kb_cal_cat_map', JSON.stringify(calCategoryMap));
+  loadGcalEvents();
+}
+
+function toggleCalendar(calId, checked) {
+  if (checked) {
+    if (!gcalSelectedCals.includes(calId)) gcalSelectedCals.push(calId);
+  } else {
+    gcalSelectedCals = gcalSelectedCals.filter(id => id !== calId);
+  }
+  localStorage.setItem('kb_gcal_selected_cals', JSON.stringify(gcalSelectedCals));
+  loadGcalEvents();
+}
+
 async function loadGcalEvents() {
   if (!gcalAccessToken || Date.now() > gcalTokenExpiry) { gcalSignIn(); return; }
   const statusEl = document.getElementById('gcalStatus');
   if (statusEl) statusEl.textContent = 'Syncing calendars...';
+
+  // Restore days button state
+  document.querySelectorAll('[id^="days-btn-"]').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById('days-btn-'+gcalDays);
+  if (activeBtn) activeBtn.classList.add('active');
 
   try {
     // Get all calendars
@@ -1405,22 +1477,49 @@ async function loadGcalEvents() {
     const calData = await calResp.json();
     if (!calData.items) { if(statusEl) statusEl.textContent = 'No calendars found.'; return; }
 
+    gcalAllCals = calData.items.filter(c => c.selected !== false);
+    // Auto-assign calendars to categories based on name matching
+    const autoMap = [
+      { keywords: ['gurudevshri', "gurudev"],         category: 'BAPA' },
+      { keywords: ['seva schedule', 'seva'],           category: 'Seva' },
+      { keywords: ['swadhyay'],                        category: 'Sadhana' },
+      { keywords: ['gujarati panchang', 'panchang'],   category: 'Miscl' },
+      { keywords: ['holidays in china', 'china'],      category: 'SKIP' },
+    ];
+    let mapChanged = false;
+    for (const cal of gcalAllCals) {
+      if (calCategoryMap[cal.id]) continue; // already mapped by user
+      const lower = (cal.summary || '').toLowerCase();
+      for (const rule of autoMap) {
+        if (rule.keywords.some(k => lower.includes(k))) {
+          calCategoryMap[cal.id] = rule.category;
+          mapChanged = true;
+          break;
+        }
+      }
+    }
+    if (mapChanged) localStorage.setItem('kb_cal_cat_map', JSON.stringify(calCategoryMap));
+    renderCalendarList();
+
     const now     = new Date();
-    const maxTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // next 30 days
+    const maxTime = new Date(now.getTime() + gcalDays * 24 * 60 * 60 * 1000);
     let allEvents = [];
 
-    // Fetch events from each calendar
-    for (const cal of calData.items) {
-      if (cal.selected === false) continue;
+    // Fetch events from selected calendars only
+    for (const cal of gcalAllCals) {
+      // Skip unwanted calendars
+      if (calCategoryMap[cal.id] === 'SKIP') continue;
+      // Skip if not selected (when user has made a selection)
+      if (gcalSelectedCals.length > 0 && !gcalSelectedCals.includes(cal.id)) continue;
       try {
         const evResp = await fetch(
           `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events?` +
-          `timeMin=${now.toISOString()}&timeMax=${maxTime.toISOString()}&singleEvents=true&orderBy=startTime&maxResults=50`, {
+          `timeMin=${now.toISOString()}&timeMax=${maxTime.toISOString()}&singleEvents=true&orderBy=startTime&maxResults=25`, {
           headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
         });
         const evData = await evResp.json();
         if (evData.items) {
-          allEvents = allEvents.concat(evData.items.map(e => ({...e, calendarName: cal.summary, calendarColor: cal.backgroundColor})));
+          allEvents = allEvents.concat(evData.items.map(e => ({...e, calendarName: cal.summary, calendarColor: cal.backgroundColor, calendarId: cal.id})));
         }
       } catch(e) {}
     }
@@ -1431,10 +1530,13 @@ async function loadGcalEvents() {
     for (const ev of allEvents) {
       const startDt = ev.start?.dateTime || ev.start?.date;
       if (!startDt) continue;
-      const category = classifyTask(ev.summary || '');
+      // Use calendar→category mapping, else auto-classify
+      const mappedCat = calCategoryMap[ev.calendarId || ''];
+      if (mappedCat === 'SKIP') continue; // Skip unwanted calendars
+      const category  = mappedCat || classifyTask(ev.summary || '');
       tasks.push({
         id:           'gcal_' + ev.id,
-        text:         ev.summary || '(No title)',
+        text:         `📅 ${ev.summary || '(No title)'}${ev.calendarName ? ' · '+ev.calendarName : ''}`,
         category,
         due:          startDt,
         priority:     'medium',
@@ -1452,8 +1554,9 @@ async function loadGcalEvents() {
 
     localStorage.setItem('kb_tasks', JSON.stringify(tasks));
     render();
-    if (statusEl) statusEl.textContent = `✓ ${allEvents.length} events synced from ${calData.items.length} calendars`;
-    showToast('📅 Calendar Synced', `${allEvents.length} events loaded`, 'success');
+    const activeCals = gcalSelectedCals.length > 0 ? gcalSelectedCals.length : gcalAllCals.length;
+    if (statusEl) statusEl.textContent = `✓ ${allEvents.length} events from ${activeCals} calendar${activeCals>1?'s':''} · next ${gcalDays} days`;
+    showToast('📅 Synced', `${allEvents.length} events · ${gcalDays} days`, 'success');
   } catch(e) {
     if (statusEl) statusEl.textContent = 'Sync failed: ' + e.message;
     console.error('GCal load error:', e);
