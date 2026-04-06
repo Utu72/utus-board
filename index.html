@@ -319,6 +319,7 @@ select option { background: white; }
 .cat-card[data-cat="Shopping"] { border-top: 3px solid var(--shopping-border); }
 .cat-card[data-cat="Miscl"]    { border-top: 3px solid var(--miscl-border); }
 .cat-card[data-cat="BAPA"]     { border-top: 4px solid var(--bapa-border); box-shadow: 0 4px 20px rgba(249,115,22,0.1); }
+.cat-card[data-cat="Panchang"] { border-top: 3px solid #0ea5e9; }
 
 .cat-header {
   padding: 0.9rem 1.1rem 0.7rem;
@@ -338,6 +339,7 @@ select option { background: white; }
 .cat-card[data-cat="Shopping"] .cat-title { color: var(--shopping-text); }
 .cat-card[data-cat="Miscl"]    .cat-title { color: var(--miscl-text); }
 .cat-card[data-cat="BAPA"]     .cat-title { color: var(--bapa-text); }
+.cat-card[data-cat="Panchang"] .cat-title { color: #0369a1; }
 
 .cat-count {
   font-family: 'DM Mono', monospace; font-size: 0.72rem;
@@ -545,6 +547,7 @@ select option { background: white; }
           <option value="Shopping">🛒 Shopping</option>
           <option value="Miscl">📌 Miscl</option>
           <option value="BAPA">🕉️ BAPA</option>
+          <option value="Panchang">🗓️ Panchang</option>
         </select>
       </div>
       <div>
@@ -700,12 +703,13 @@ const CATEGORIES = [
   {id:'Seva',     icon:'🙏'}, {id:'Personal',icon:'👤'},
   {id:'Home',     icon:'🏠'}, {id:'Office',  icon:'💼'},
   {id:'Shopping', icon:'🛒'}, {id:'Miscl',   icon:'📌'},
+  {id:'Panchang', icon:'🗓️', special:true},
 ];
 
 // Calendar → Category mapping (user configurable)
 let calCategoryMap = JSON.parse(localStorage.getItem('kb_cal_cat_map') || '{}');
-// Default: Pujya Gurudevshri's Schedule → BAPA
-// This gets set automatically when calendars are loaded
+// Auto-mapping: Pujya Gurudevshri → BAPA, Seva → Seva, Swadhyay → Sadhana etc.
+// Map is built automatically on first Google Calendar sync
 
 const KEYWORDS = {
   Self:     ['health','exercise','gym','run','walk','sleep','diet','workout','fitness','doctor','medicine','relax','haircut','spa','therapy','myself'],
@@ -1038,6 +1042,8 @@ async function checkReminders(force=false) {
   let changed = false;
   for (const task of tasks) {
     if (task.done || !task.due) continue;
+    // For gcal events, only remind if user explicitly set a reminder
+    if (task.source === 'gcal' && !task.reminderSet) continue;
     const due = new Date(task.due);
     const mins = (due-now)/60000;
     if ((settings.reminderEnabled||force) && mins>=0 && mins<=30 && !task.reminderSent) {
@@ -1179,7 +1185,7 @@ function getFilteredTasks(catId) {
   return tasks.filter(t => {
     if (t.category !== catId) return false;
     switch(currentFilter) {
-      case 'pending':   return !t.done;
+      case 'pending':   return !t.done && t.source !== 'gcal';
       case 'done':      return t.done;
       case 'overdue':   return !t.done && t.due && new Date(t.due)<now;
       case 'today':     return t.due && new Date(t.due)>=todayS && new Date(t.due)<=todayE;
@@ -1211,6 +1217,31 @@ function fmtDue(iso) {
 
 function renderTask(t) {
   const s=getStatus(t), dl=fmtDue(t.due);
+
+  // Calendar events from Google Calendar — show as schedule items, not tasks
+  if (t.source === 'gcal') {
+    const evDate = t.due ? new Date(t.due) : null;
+    const evTime = evDate ? evDate.toLocaleString('en-IN',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    const isPast = evDate && evDate < new Date();
+    const borderColor = t.category==='BAPA' ? 'var(--bapa-border)' : t.category==='Panchang' ? '#0ea5e9' : 'var(--border2)';
+    const hasReminder = !!t.reminderSet;
+    return `<div class="task-item" id="task-${t.id}" style="background:${isPast?'var(--cream3)':'var(--cream)'};opacity:${isPast?'0.6':'1'};cursor:default;border-left:3px solid ${borderColor}">
+      <div class="task-top">
+        <span style="font-size:1rem;flex-shrink:0">📅</span>
+        <span class="task-text" style="font-size:0.85rem">${escHtml(t.text.replace('📅 ',''))}</span>
+        <div class="task-actions" style="opacity:1">
+          ${!isPast ? `<button class="task-btn" onclick="toggleGcalReminder('${t.id}')" title="${hasReminder?'Remove reminder':'Set reminder'}" style="color:${hasReminder?'var(--soon)':'var(--ink3)'}">${hasReminder?'🔔':'🔕'}</button>` : ''}
+          <button class="task-btn del" onclick="deleteTask('${t.id}')" title="Remove">✕</button>
+        </div>
+      </div>
+      ${evTime ? `<div style="padding-left:28px;margin-top:4px;display:flex;gap:5px;flex-wrap:wrap">
+        <span class="task-tag ${isPast?'tag-done':'tag-ok'}" style="font-size:0.68rem">🕐 ${evTime}</span>
+        ${t.gcalCalendar?`<span class="task-tag tag-gcal" style="font-size:0.68rem">${t.gcalCalendar}</span>`:''}
+        ${hasReminder?`<span class="task-tag tag-soon" style="font-size:0.68rem">🔔 reminder set</span>`:''}
+      </div>` : ''}
+    </div>`;
+  }
+
   const pClass = t.priority ? 'p-'+t.priority : '';
   const recurClass = (t.recur && t.recur!=='none') ? 'recurring' : '';
   return `<div class="task-item ${pClass} ${recurClass} ${t.done?'done':''}" id="task-${t.id}"
@@ -1230,7 +1261,6 @@ function renderTask(t) {
       ${s==='done'   ?`<span class="task-tag tag-done">✓ done</span>`:''}
       ${t.aiClassified?`<span class="task-tag tag-ai">ai</span>`:''}
       ${t.recur&&t.recur!=='none'?`<span class="task-tag tag-recur">🔁 ${t.recur}</span>`:''}
-      ${t.gcalSent?`<span class="task-tag tag-gcal">📅 cal</span>`:''}
     </div>
   </div>`;
 }
@@ -1246,6 +1276,7 @@ function render() {
     const pending  = allCat.filter(t=>!t.done);
 
     for (const t of allCat) {
+      if (t.source === 'gcal') continue; // Don't count calendar events in task stats
       if (!t.done) total++;
       const s=getStatus(t);
       if (s==='overdue') overdue++;
@@ -1255,13 +1286,18 @@ function render() {
 
     const card = document.createElement('div');
     card.className='cat-card'; card.dataset.cat=cat.id;
-    if (cat.id === 'BAPA') card.style.cssText = 'grid-column: 1 / -1; background: linear-gradient(135deg, #fff8f0 0%, #fff3e8 100%);';
+    if (cat.id === 'BAPA')     card.style.cssText = 'grid-column: 1 / -1; background: linear-gradient(135deg, #fff8f0 0%, #fff3e8 100%);';
+    if (cat.id === 'Panchang') card.style.cssText = 'grid-column: 1 / -1; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);';
     card.addEventListener('dragover', e=>onDragOver(e,cat.id));
     card.addEventListener('drop',     e=>onDrop(e,cat.id));
+    const gcalCount = allCat.filter(t=>t.source==='gcal').length;
     card.innerHTML=`
       <div class="cat-header">
         <div class="cat-title"><span>${cat.icon}</span>${cat.id}</div>
-        <span class="cat-count">${pending.length}</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${gcalCount>0?`<span class="cat-count" style="background:#fff3e8;color:var(--bapa-text)">📅 ${gcalCount}</span>`:''}
+          <span class="cat-count">${pending.length}</span>
+        </div>
       </div>
       <div class="cat-body">
         ${filtered.length===0 ? `<div class="empty-state">No tasks</div>` : filtered.map(renderTask).join('')}
@@ -1302,6 +1338,19 @@ function addLog(icon,msg) {
   if (notifyLog.length>50) notifyLog.pop();
   localStorage.setItem('kb_log',JSON.stringify(notifyLog));
   renderLog();
+}
+
+function toggleGcalReminder(id) {
+  const t = tasks.find(x=>x.id===id);
+  if (!t) return;
+  t.reminderSet = !t.reminderSet;
+  if (t.reminderSet) {
+    t.reminderSent = false; // reset so it fires
+    showToast('🔔 Reminder Set', `Will notify 30 min before: ${t.text.slice(0,40)}`, 'success');
+  } else {
+    showToast('🔕 Reminder Off', t.text.slice(0,40), 'default');
+  }
+  save(); render();
 }
 
 function showToast(title,msg,type='default') {
@@ -1483,7 +1532,7 @@ async function loadGcalEvents() {
       { keywords: ['gurudevshri', "gurudev"],         category: 'BAPA' },
       { keywords: ['seva schedule', 'seva'],           category: 'Seva' },
       { keywords: ['swadhyay'],                        category: 'Sadhana' },
-      { keywords: ['gujarati panchang', 'panchang'],   category: 'Miscl' },
+      { keywords: ['gujarati panchang', 'panchang'],   category: 'Panchang' },
       { keywords: ['holidays in china', 'china'],      category: 'SKIP' },
     ];
     let mapChanged = false;
