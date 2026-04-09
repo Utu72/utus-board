@@ -484,6 +484,39 @@ select option { background: white; }
 /* ── GCAL SECTION ── */
 .gcal-note { font-size: 0.78rem; color: var(--ink3); font-style: italic; margin-top: 8px; line-height: 1.5; }
 
+/* Habit Tracker */
+.habit-section { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; margin-top: 1.5rem; box-shadow: var(--shadow); }
+.habit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+.habit-card {
+  background: var(--cream); border: 1.5px solid var(--border2); border-radius: 10px;
+  padding: 12px 14px; cursor: pointer; transition: all 0.2s; position: relative;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.habit-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(44,36,22,0.1); }
+.habit-card.done { background: #f0fdf4; border-color: #4ade80; }
+.habit-card.done .habit-name { text-decoration: none; color: #14532d; }
+.habit-icon { font-size: 1.4rem; }
+.habit-name { font-size: 0.85rem; font-weight: 500; color: var(--ink); line-height: 1.3; }
+.habit-streak { font-size: 0.72rem; color: var(--ink3); font-family: 'DM Mono', monospace; }
+.habit-streak.hot { color: #ea580c; }
+.habit-check { position: absolute; top: 8px; right: 10px; font-size: 1rem; }
+.habit-progress {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  font-size: 0.78rem; color: var(--ink2);
+}
+.habit-bar { flex: 1; height: 6px; background: var(--cream2); border-radius: 3px; overflow: hidden; }
+.habit-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #4ade80, #16a34a); transition: width 0.4s; }
+
+/* Weekly Review */
+.review-section { background: linear-gradient(135deg, #f9f5ff 0%, #f3e8ff 100%); border: 1px solid #d8b4fe; border-radius: var(--radius); padding: 1.4rem; margin-top: 1.5rem; box-shadow: var(--shadow); }
+.review-q { margin-bottom: 12px; }
+.review-q label { font-size: 0.82rem; font-weight: 500; color: #6d28d9; display: block; margin-bottom: 4px; }
+.review-q textarea { width: 100%; background: white; border: 1.5px solid #ddd6fe; border-radius: 8px; padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--ink); resize: vertical; outline: none; min-height: 60px; }
+.review-q textarea:focus { border-color: #7c3aed; }
+.review-entry { background: white; border: 1px solid #ddd6fe; border-left: 3px solid #7c3aed; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; }
+.review-entry-date { font-size: 0.72rem; color: #7c3aed; font-family: 'DM Mono', monospace; margin-bottom: 6px; }
+.review-entry-text { font-size: 0.82rem; color: var(--ink2); line-height: 1.5; }
+
 /* Notes & Journal */
 .notes-section { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; margin-top: 1.5rem; box-shadow: var(--shadow); }
 .note-item { background: #fffbf0; border: 1px solid #f0e0a0; border-left: 3px solid #f0c040; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; transition: all 0.15s; }
@@ -629,6 +662,43 @@ select option { background: white; }
     </div>
     <input type="text" class="note-search" id="noteSearch" placeholder="🔍 Search notes..." oninput="filterNotes()">
     <div id="notesList"><div class="empty-state">No notes yet. Send /note [text] to @UtpalKarma_bot</div></div>
+  </div>
+
+  <!-- Habit Tracker -->
+  <div class="habit-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
+      <div class="panel-title" style="margin-bottom:0">🔥 Daily Habits</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="habitDate" style="font-size:0.75rem;color:var(--ink3)"></span>
+        <button class="btn btn-ghost" onclick="resetHabitsForToday()" style="font-size:0.72rem">Reset Today</button>
+      </div>
+    </div>
+    <div class="habit-progress">
+      <span id="habitProgressText" style="font-size:0.8rem;color:var(--ink2)">0 of 8 done today</span>
+      <div class="habit-bar" style="max-width:200px"><div class="habit-bar-fill" id="habitBarFill" style="width:0%"></div></div>
+    </div>
+    <div class="habit-grid" id="habitGrid"></div>
+  </div>
+
+  <!-- Weekly Review -->
+  <div class="review-section" id="weeklyReviewSection">
+    <div class="panel-title" style="margin-bottom:12px;color:#6d28d9">📖 Weekly Review</div>
+    <div id="reviewForm">
+      <div class="review-q">
+        <label>1. What went well this week? 🌟</label>
+        <textarea id="rq1" placeholder="Share your wins, gratitude, moments of grace..."></textarea>
+      </div>
+      <div class="review-q">
+        <label>2. What could have been better? 🌱</label>
+        <textarea id="rq2" placeholder="Honest reflection — what habits slipped, what distracted you..."></textarea>
+      </div>
+      <div class="review-q">
+        <label>3. What is your intention for next week? 🙏</label>
+        <textarea id="rq3" placeholder="One clear focus, one spiritual intention, one practical goal..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveWeeklyReview()" style="margin-top:4px">Save Review 📖</button>
+    </div>
+    <div id="reviewHistory" style="margin-top:16px"></div>
   </div>
 
   <!-- Notification Log -->
@@ -1534,7 +1604,10 @@ setRecur('none');
 if (masterMsg) showMasterMessage(masterMsg);
 loadFromGist();
 loadNotesFromGist();
+loadHabitsFromGist();
 renderNotes();
+renderHabits();
+renderWeeklyReviews();
 fetchSunTimes(); // Load sunrise/sunset on startup
 
 setInterval(updateClock,  60000);
@@ -1555,6 +1628,192 @@ const GCAL_SCOPES    = 'https://www.googleapis.com/auth/calendar.readonly https:
 let gcalTokenClient = null;
 let gcalAccessToken = localStorage.getItem('kb_gcal_token') || null;
 let gcalTokenExpiry = parseInt(localStorage.getItem('kb_gcal_expiry') || '0');
+
+// ═══════════════════════════════════════════
+//  HABIT TRACKER
+// ═══════════════════════════════════════════
+const DEFAULT_HABITS = [
+  { id: 'h1', name: 'Morning Meditation', icon: '🧘', time: '06:00' },
+  { id: 'h2', name: 'Morning Karm',       icon: '🙏', time: '07:00' },
+  { id: 'h3', name: 'Evening Karm',       icon: '🕯️', time: '18:00' },
+  { id: 'h4', name: 'Evening Meditation', icon: '🧘', time: '19:00' },
+  { id: 'h5', name: 'Introspection Sheet',icon: '📝', time: '21:00' },
+  { id: 'h6', name: 'Write Prayer to BAPA',icon: '✍️', time: '20:00' },
+  { id: 'h7', name: 'Walk',               icon: '🚶', time: '07:30' },
+  { id: 'h8', name: 'Listen to Satsang',  icon: '🎧', time: '08:00' },
+];
+
+let habits     = JSON.parse(localStorage.getItem('kb_habits')      || 'null') || DEFAULT_HABITS;
+let habitLogs  = JSON.parse(localStorage.getItem('kb_habit_logs')  || '{}');
+// habitLogs = { "2026-04-09": { "h1": true, "h3": true, ... } }
+
+function todayKey() { return new Date().toISOString().slice(0,10); }
+
+function getStreak(habitId) {
+  let streak = 0;
+  const d = new Date();
+  while (true) {
+    const key = d.toISOString().slice(0,10);
+    if (habitLogs[key]?.[habitId]) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+function toggleHabit(habitId) {
+  const today = todayKey();
+  if (!habitLogs[today]) habitLogs[today] = {};
+  habitLogs[today][habitId] = !habitLogs[today][habitId];
+  localStorage.setItem('kb_habit_logs', JSON.stringify(habitLogs));
+  renderHabits();
+  syncHabitsToGist();
+  // Celebrate if all done
+  const todayLog = habitLogs[today] || {};
+  const doneCount = habits.filter(h => todayLog[h.id]).length;
+  if (doneCount === habits.length) {
+    showToast('🔥 All Done!', 'All habits completed today! Jai Gurudev 🙏', 'success');
+    sendTelegram('🔥 <b>All habits completed today!</b>\n\nJai Gurudev 🙏\nYou have completed all 8 daily practices.');
+  }
+}
+
+function resetHabitsForToday() {
+  const today = todayKey();
+  habitLogs[today] = {};
+  localStorage.setItem('kb_habit_logs', JSON.stringify(habitLogs));
+  renderHabits();
+}
+
+function renderHabits() {
+  const grid = document.getElementById('habitGrid');
+  if (!grid) return;
+  const today    = todayKey();
+  const todayLog = habitLogs[today] || {};
+  const doneCount = habits.filter(h => todayLog[h.id]).length;
+
+  // Update progress
+  const pct = Math.round((doneCount / habits.length) * 100);
+  const progressEl = document.getElementById('habitProgressText');
+  const barEl      = document.getElementById('habitBarFill');
+  if (progressEl) progressEl.textContent = `${doneCount} of ${habits.length} done today`;
+  if (barEl) barEl.style.width = pct + '%';
+
+  const dateEl = document.getElementById('habitDate');
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+
+  grid.innerHTML = habits.map(h => {
+    const done   = !!todayLog[h.id];
+    const streak = getStreak(h.id);
+    return `<div class="habit-card ${done?'done':''}" onclick="toggleHabit('${h.id}')">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="habit-icon">${h.icon}</span>
+        <span class="habit-name">${h.name}</span>
+      </div>
+      <div class="habit-streak ${streak>=7?'hot':''}">
+        ${streak > 0 ? `🔥 ${streak} day streak` : 'No streak yet'}
+      </div>
+      <span class="habit-check">${done ? '✅' : '⬜'}</span>
+    </div>`;
+  }).join('');
+}
+
+async function syncHabitsToGist() {
+  const id = GIST_ID(), token = GIST_TOKEN();
+  if (!id || !token) return;
+  try {
+    await fetch(`https://api.github.com/gists/${id}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { 'kb_habit_logs.json': { content: JSON.stringify(habitLogs) } } })
+    });
+  } catch(e) {}
+}
+
+async function loadHabitsFromGist() {
+  const id = GIST_ID(), token = GIST_TOKEN();
+  if (!id) return;
+  try {
+    const r = await fetch(`https://api.github.com/gists/${id}`, {
+      headers: token ? { 'Authorization': `token ${token}` } : {}
+    });
+    const d = await r.json();
+    const content = d.files?.['kb_habit_logs.json']?.content;
+    if (content) {
+      const gistLogs = JSON.parse(content);
+      habitLogs = { ...gistLogs, ...habitLogs }; // merge, local takes priority for today
+      localStorage.setItem('kb_habit_logs', JSON.stringify(habitLogs));
+      renderHabits();
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+//  WEEKLY REVIEW
+// ═══════════════════════════════════════════
+let weeklyReviews = JSON.parse(localStorage.getItem('kb_reviews') || '[]');
+
+function saveWeeklyReview() {
+  const q1 = document.getElementById('rq1').value.trim();
+  const q2 = document.getElementById('rq2').value.trim();
+  const q3 = document.getElementById('rq3').value.trim();
+  if (!q1 && !q2 && !q3) { showToast('⚠️', 'Please answer at least one question', 'warn'); return; }
+
+  const review = {
+    id:      genId(),
+    date:    new Date().toISOString(),
+    week:    getWeekLabel(),
+    q1, q2, q3
+  };
+  weeklyReviews.unshift(review);
+  localStorage.setItem('kb_reviews', JSON.stringify(weeklyReviews));
+
+  // Clear form
+  ['rq1','rq2','rq3'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+
+  // Send summary to Telegram
+  let msg = `📖 <b>Weekly Review — ${review.week}</b>\n\n`;
+  if (q1) msg += `🌟 <b>What went well:</b>\n${q1.slice(0,200)}\n\n`;
+  if (q2) msg += `🌱 <b>Could be better:</b>\n${q2.slice(0,200)}\n\n`;
+  if (q3) msg += `🙏 <b>Next week intention:</b>\n${q3.slice(0,200)}`;
+  sendTelegram(msg);
+
+  renderWeeklyReviews();
+  showToast('📖 Review Saved', 'Weekly reflection saved and sent to Telegram', 'success');
+
+  // Sync to Gist
+  syncReviewsToGist();
+}
+
+function getWeekLabel() {
+  const now = new Date();
+  const start = new Date(now); start.setDate(now.getDate() - now.getDay() + 1);
+  const end   = new Date(start); end.setDate(start.getDate() + 6);
+  return `${start.toLocaleDateString('en-IN',{day:'numeric',month:'short'})} – ${end.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`;
+}
+
+function renderWeeklyReviews() {
+  const el = document.getElementById('reviewHistory');
+  if (!el) return;
+  if (!weeklyReviews.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div style="font-size:0.78rem;color:#7c3aed;font-weight:600;margin-bottom:8px;letter-spacing:0.05em">PAST REVIEWS</div>' +
+    weeklyReviews.slice(0,5).map(r => `
+    <div class="review-entry">
+      <div class="review-entry-date">📅 ${r.week}</div>
+      ${r.q1?`<div class="review-entry-text">🌟 ${r.q1.slice(0,100)}${r.q1.length>100?'...':''}</div>`:''}
+      ${r.q3?`<div class="review-entry-text" style="margin-top:4px">🙏 ${r.q3.slice(0,100)}${r.q3.length>100?'...':''}</div>`:''}
+    </div>`).join('');
+}
+
+async function syncReviewsToGist() {
+  const id = GIST_ID(), token = GIST_TOKEN();
+  if (!id || !token) return;
+  try {
+    await fetch(`https://api.github.com/gists/${id}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { 'kb_reviews.json': { content: JSON.stringify(weeklyReviews) } } })
+    });
+  } catch(e) {}
+}
 
 // ═══════════════════════════════════════════
 //  GOOGLE TASKS
