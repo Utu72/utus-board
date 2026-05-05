@@ -1,0 +1,2384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utu's Board · Personal AI Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:   #faf7f2;
+  --cream2:  #f3ede3;
+  --cream3:  #ede4d6;
+  --paper:   #ffffff;
+  --ink:     #2c2416;
+  --ink2:    #6b5e4a;
+  --ink3:    #a8987e;
+  --border:  rgba(44,36,22,0.1);
+  --border2: rgba(44,36,22,0.18);
+  --shadow:  0 4px 24px rgba(44,36,22,0.08);
+  --shadow2: 0 8px 40px rgba(44,36,22,0.13);
+  --radius:  16px;
+  --radius2: 10px;
+
+  /* Category card colours */
+  --self-bg:     #fef9ec; --self-border:  #f0c040; --self-text:    #7a5c00; --self-light: #fffbf0;
+  --sadhana-bg:  #f3f0fc; --sadhana-border:#a78bfa; --sadhana-text: #4c1d95; --sadhana-light:#f9f7ff;
+  --seva-bg:     #fff0f0; --seva-border:  #f87171; --seva-text:    #991b1b; --seva-light:  #fff5f5;
+  --personal-bg: #f0faf8; --personal-border:#34d399;--personal-text:#065f46; --personal-light:#f5fffc;
+  --home-bg:     #fff7ed; --home-border:  #fb923c; --home-text:    #9a3412; --home-light:  #fffbf5;
+  --office-bg:   #eff6ff; --office-border:#60a5fa; --office-text:  #1e3a8a; --office-light:#f5f9ff;
+  --shopping-bg: #f0fdf4; --shopping-border:#4ade80;--shopping-text:#14532d;--shopping-light:#f7fff9;
+  --miscl-bg:    #f8f8f8; --miscl-border: #94a3b8; --miscl-text:   #334155; --miscl-light: #fafafa;
+  --bapa-bg:     #fff8f0; --bapa-border:  #f97316; --bapa-text:    #7c2d12; --bapa-light:  #fffaf5;
+
+  /* Priority */
+  --p-high:   #ef4444; --p-high-bg:   #fef2f2;
+  --p-medium: #f59e0b; --p-medium-bg: #fffbeb;
+  --p-low:    #10b981; --p-low-bg:    #f0fdf4;
+
+  /* Status */
+  --overdue:  #dc2626;
+  --soon:     #d97706;
+  --ok:       #2563eb;
+  --done-col: #6b7280;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle texture */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4a882' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250,247,242,0.94);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border2);
+  padding: 0 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+  box-shadow: 0 1px 12px rgba(44,36,22,0.06);
+}
+
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem; font-weight: 700;
+  color: var(--ink);
+  display: flex; align-items: center; gap: 10px;
+  font-style: italic;
+}
+.logo span { color: var(--ink3); font-size: 0.75rem; font-style: normal; font-family: 'DM Mono', monospace; letter-spacing: 0.08em; }
+
+.header-right { display: flex; align-items: center; gap: 10px; }
+
+#clock {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem; color: var(--ink3);
+}
+
+.btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem; font-weight: 500;
+  padding: 8px 18px; border-radius: 8px;
+  cursor: pointer; border: none; transition: all 0.18s;
+}
+.btn-primary { background: var(--ink); color: var(--cream); }
+.btn-primary:hover { background: #453520; transform: translateY(-1px); box-shadow: var(--shadow); }
+.btn-ghost { background: transparent; color: var(--ink2); border: 1px solid var(--border2); }
+.btn-ghost:hover { background: var(--cream2); }
+
+/* ── MAIN ── */
+main { position: relative; z-index: 1; padding: 1.5rem 2rem; max-width: 1600px; margin: 0 auto; }
+
+/* ── MASTER MESSAGE ── */
+.master-msg {
+  background: linear-gradient(135deg, #fffbf0 0%, #fef9e7 100%);
+  border: 1.5px solid #f0c040;
+  border-radius: var(--radius);
+  padding: 2rem 2.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 24px rgba(240,192,64,0.18);
+  display: none;
+  animation: fadeDown 0.4s ease;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+}
+.master-msg.visible { display: flex; gap: 10px; }
+.master-msg-icon { font-size: 2.2rem; }
+.master-msg-body { flex: 1; width: 100%; }
+.master-msg-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem; letter-spacing: 0.15em;
+  color: #7a5c00; text-transform: uppercase; margin-bottom: 10px;
+}
+.master-msg-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem; font-weight: 700; font-style: italic;
+  color: var(--ink); line-height: 1.6;
+  max-width: 860px; margin: 0 auto;
+}
+.master-msg-date { font-size: 0.75rem; color: var(--ink3); margin-top: 10px; }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center;
+}
+.stat-chip {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 16px;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: var(--shadow);
+}
+.stat-chip .count { font-family: 'DM Mono', monospace; font-size: 1.1rem; color: var(--ink); }
+.stat-chip .label { font-size: 0.78rem; color: var(--ink3); }
+.stat-chip.overdue .count { color: var(--overdue); }
+.stat-chip.soon .count { color: var(--soon); }
+.stat-chip.done-chip .count { color: var(--p-low); }
+
+/* ── INPUT PANEL ── */
+.input-panel {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow);
+}
+.panel-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.85rem; font-style: italic;
+  color: var(--ink2); margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.input-row { display: flex; gap: 10px; align-items: flex-start; }
+.task-input {
+  flex: 1;
+  background: var(--cream);
+  border: 1.5px solid var(--border2);
+  border-radius: 10px;
+  padding: 11px 16px;
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  resize: none; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  min-height: 46px;
+}
+.task-input:focus { border-color: var(--ink2); box-shadow: 0 0 0 3px rgba(44,36,22,0.06); }
+.task-input::placeholder { color: var(--ink3); }
+
+.input-row2 {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; align-items: center;
+}
+
+select, input[type="datetime-local"], input[type="text"], input[type="password"] {
+  background: var(--cream);
+  border: 1.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+}
+select:focus, input:focus { border-color: var(--ink2); }
+select option { background: white; }
+
+/* Priority selector */
+.priority-sel { display: flex; gap: 6px; align-items: center; }
+.priority-sel label { font-size: 0.8rem; color: var(--ink2); }
+.p-btn {
+  padding: 5px 12px; border-radius: 20px; border: 1.5px solid transparent;
+  font-size: 0.75rem; font-weight: 500; cursor: pointer;
+  transition: all 0.15s; background: var(--cream2);
+  font-family: 'DM Sans', sans-serif; color: var(--ink2);
+}
+.p-btn:hover { transform: translateY(-1px); }
+.p-btn.active-high   { background: var(--p-high-bg);   border-color: var(--p-high);   color: var(--p-high); }
+.p-btn.active-medium { background: var(--p-medium-bg); border-color: var(--p-medium); color: var(--p-medium); }
+.p-btn.active-low    { background: var(--p-low-bg);    border-color: var(--p-low);    color: var(--p-low); }
+
+/* Recurring */
+.recur-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.recur-row label { font-size: 0.8rem; color: var(--ink2); }
+.recur-btn {
+  padding: 4px 12px; border-radius: 20px;
+  border: 1.5px solid var(--border2); background: var(--cream2);
+  font-size: 0.75rem; cursor: pointer; transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif; color: var(--ink2);
+}
+.recur-btn.active { background: var(--ink); color: white; border-color: var(--ink); }
+
+.thinking-indicator {
+  display: none; align-items: center; gap: 6px;
+  font-size: 0.78rem; color: var(--ink3); font-style: italic; margin-top: 6px;
+}
+.thinking-indicator.visible { display: flex; }
+.think-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink3); animation: bounce 1s ease infinite; }
+.think-dot:nth-child(2) { animation-delay: 0.15s; }
+.think-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-4px)} }
+
+/* ── SETTINGS PANELS ── */
+.settings-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+@media(max-width:768px){ .settings-grid{ grid-template-columns:1fr; } }
+
+.settings-panel {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.4rem;
+  box-shadow: var(--shadow);
+}
+.settings-panel .panel-title { margin-bottom: 0.8rem; }
+
+.field-group { margin-bottom: 10px; }
+.field-label { font-size: 0.72rem; color: var(--ink3); letter-spacing: 0.05em; text-transform: uppercase; display: block; margin-bottom: 4px; font-family: 'DM Mono', monospace; }
+.field-input { width: 100%; }
+
+.toggle-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.toggle-row label { font-size: 0.83rem; color: var(--ink2); cursor: pointer; }
+.toggle-row input[type="checkbox"] { accent-color: var(--ink); width: 15px; height: 15px; cursor: pointer; }
+
+.status-pill {
+  display: inline-block; padding: 4px 12px; border-radius: 20px;
+  font-size: 0.75rem; margin-top: 8px;
+}
+.status-pill.success { background: var(--p-low-bg); color: #14532d; border: 1px solid #4ade80; }
+.status-pill.error   { background: var(--p-high-bg); color: #991b1b; border: 1px solid #f87171; }
+.status-pill.info    { background: #eff6ff; color: #1e40af; border: 1px solid #93c5fd; }
+
+/* ── BOARD ── */
+.board-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.2rem; flex-wrap: wrap; gap: 10px;
+}
+.board-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem; font-style: italic; color: var(--ink);
+}
+.filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-chip {
+  padding: 5px 14px; border-radius: 20px;
+  font-size: 0.78rem; cursor: pointer;
+  border: 1.5px solid var(--border2);
+  color: var(--ink2); background: var(--paper);
+  transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+}
+.filter-chip:hover { border-color: var(--ink2); }
+.filter-chip.active { background: var(--ink); color: white; border-color: var(--ink); }
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1.2rem;
+}
+
+/* ── CATEGORY CARDS ── */
+.cat-card {
+  background: var(--paper);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.25s, transform 0.25s, grid-column 0.3s;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+}
+.cat-card:hover {
+  box-shadow: var(--shadow2);
+  transform: translateY(-3px);
+  border-color: var(--border2);
+}
+.cat-card.drag-over { box-shadow: 0 0 0 3px var(--ink), var(--shadow2); }
+
+/* Expanded card — full width on click */
+.cat-card.expanded {
+  grid-column: 1 / -1 !important;
+  transform: none !important;
+  box-shadow: var(--shadow2) !important;
+  cursor: default;
+  border-width: 2px;
+}
+.cat-card.expanded .cat-body {
+  max-height: none !important;
+  columns: 3;
+  column-gap: 12px;
+}
+.cat-card.expanded .task-item { break-inside: avoid; }
+.cat-card.expanded .expand-icon { transform: rotate(180deg); opacity:1; }
+
+/* Peeking card — hover to see tasks */
+.cat-card.peeking {
+  box-shadow: var(--shadow2) !important;
+  transform: translateY(-3px) !important;
+  z-index: 10;
+  position: relative;
+}
+.cat-card.peeking .cat-body {
+  max-height: 500px !important;
+  overflow-y: auto;
+}
+
+@media(max-width:900px) { .cat-card.expanded .cat-body { columns: 2; } }
+@media(max-width:600px) { .cat-card.expanded .cat-body { columns: 1; } }
+
+/* Per-category colouring */
+.cat-card[data-cat="Self"]     { border-top: 3px solid var(--self-border); }
+.cat-card[data-cat="Sadhana"]  { border-top: 3px solid var(--sadhana-border); }
+.cat-card[data-cat="Seva"]     { border-top: 3px solid var(--seva-border); }
+.cat-card[data-cat="Personal"] { border-top: 3px solid var(--personal-border); }
+.cat-card[data-cat="Home"]     { border-top: 3px solid var(--home-border); }
+.cat-card[data-cat="Office"]   { border-top: 3px solid var(--office-border); }
+.cat-card[data-cat="Shopping"] { border-top: 3px solid var(--shopping-border); }
+.cat-card[data-cat="Miscl"]    { border-top: 3px solid var(--miscl-border); }
+.cat-card[data-cat="BAPA"]     { border-top: 4px solid var(--bapa-border); box-shadow: 0 4px 20px rgba(249,115,22,0.1); }
+.cat-card[data-cat="Panchang"] { border-top: 3px solid #0ea5e9; }
+
+.cat-header {
+  padding: 0.9rem 1.1rem 0.7rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cat-title {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem; font-weight: 600; letter-spacing: 0.02em;
+}
+.cat-card[data-cat="Self"]     .cat-title { color: var(--self-text); }
+.cat-card[data-cat="Sadhana"]  .cat-title { color: var(--sadhana-text); }
+.cat-card[data-cat="Seva"]     .cat-title { color: var(--seva-text); }
+.cat-card[data-cat="Personal"] .cat-title { color: var(--personal-text); }
+.cat-card[data-cat="Home"]     .cat-title { color: var(--home-text); }
+.cat-card[data-cat="Office"]   .cat-title { color: var(--office-text); }
+.cat-card[data-cat="Shopping"] .cat-title { color: var(--shopping-text); }
+.cat-card[data-cat="Miscl"]    .cat-title { color: var(--miscl-text); }
+.cat-card[data-cat="BAPA"]     .cat-title { color: var(--bapa-text); }
+.cat-card[data-cat="Panchang"] .cat-title { color: #0369a1; }
+
+.cat-count {
+  font-family: 'DM Mono', monospace; font-size: 0.72rem;
+  padding: 2px 8px; border-radius: 10px;
+  background: var(--cream2); color: var(--ink3);
+}
+
+.cat-body {
+  padding: 0 0.7rem 0.7rem;
+  min-height: 50px; max-height: 360px; overflow-y: auto;
+}
+.cat-body::-webkit-scrollbar { width: 3px; }
+.cat-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── TASK ITEMS ── */
+.task-item {
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius2);
+  padding: 9px 11px;
+  margin-bottom: 6px;
+  cursor: grab; transition: all 0.15s;
+  position: relative;
+}
+.task-item:hover { border-color: var(--border2); background: var(--cream2); box-shadow: 0 2px 8px rgba(44,36,22,0.07); }
+.task-item.dragging { opacity: 0.4; }
+.task-item.done { opacity: 0.5; }
+.task-item.done .task-text { text-decoration: line-through; color: var(--ink3); }
+
+/* Priority left bar */
+.task-item.p-high   { border-left: 3px solid var(--p-high); }
+.task-item.p-medium { border-left: 3px solid var(--p-medium); }
+.task-item.p-low    { border-left: 3px solid var(--p-low); }
+
+/* Recurring indicator */
+.task-item.recurring::after {
+  content: '🔁';
+  position: absolute; top: 6px; right: 28px;
+  font-size: 0.65rem; opacity: 0.6;
+}
+
+.task-top { display: flex; align-items: flex-start; gap: 8px; }
+.task-check {
+  width: 16px; height: 16px; border-radius: 4px;
+  border: 1.5px solid var(--border2); flex-shrink: 0; margin-top: 2px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; background: white; font-size: 0.65rem;
+}
+.task-check:hover { border-color: var(--p-low); }
+.task-check.checked { background: var(--p-low); border-color: var(--p-low); color: white; }
+
+.task-text { flex: 1; font-size: 0.88rem; line-height: 1.4; color: var(--ink); word-break: break-word; }
+
+.task-actions { display: flex; gap: 3px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
+.task-item:hover .task-actions { opacity: 1; }
+.task-btn {
+  background: none; border: none; color: var(--ink3); cursor: pointer;
+  font-size: 0.82rem; padding: 2px 5px; border-radius: 4px; transition: all 0.15s;
+}
+.task-btn:hover { background: var(--cream3); color: var(--ink); }
+.task-btn.del:hover { color: var(--overdue); }
+
+.task-meta { margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap; padding-left: 24px; }
+.task-tag {
+  font-size: 0.68rem; padding: 2px 7px; border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+}
+.tag-overdue { background: #fef2f2; color: var(--overdue); border: 1px solid #fecaca; }
+.tag-soon    { background: #fffbeb; color: var(--soon);    border: 1px solid #fde68a; }
+.tag-ok      { background: #eff6ff; color: var(--ok);      border: 1px solid #bfdbfe; }
+.tag-done    { background: #f0fdf4; color: #16a34a;        border: 1px solid #86efac; }
+.tag-ai      { background: var(--cream2); color: var(--ink3); font-style: italic; }
+.tag-recur   { background: #f5f3ff; color: #7c3aed;        border: 1px solid #ddd6fe; }
+.tag-gcal    { background: #fef9c3; color: #854d0e;        border: 1px solid #fef08a; }
+
+.priority-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 2px;
+}
+.dot-high   { background: var(--p-high); }
+.dot-medium { background: var(--p-medium); }
+.dot-low    { background: var(--p-low); }
+
+.empty-state { padding: 1.2rem; text-align: center; color: var(--ink3); font-style: italic; font-size: 0.82rem; }
+
+/* ── MOVE MODAL ── */
+.overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(44,36,22,0.4);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--paper);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 1.8rem; width: 400px; max-width: 92vw;
+  box-shadow: var(--shadow2);
+  transform: translateY(20px); transition: transform 0.2s;
+}
+.overlay.open .modal { transform: translateY(0); }
+.modal h3 { font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; color: var(--ink); margin-bottom: 0.5rem; }
+.modal .task-preview { font-size: 0.85rem; color: var(--ink2); font-style: italic; margin-bottom: 1.2rem; padding: 8px 12px; background: var(--cream); border-radius: 8px; border-left: 3px solid var(--border2); }
+.cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 1.2rem; }
+.cat-btn {
+  padding: 10px 12px; border-radius: 8px;
+  background: var(--cream); border: 1.5px solid var(--border);
+  cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.8rem; color: var(--ink2); font-family: 'DM Sans', sans-serif;
+}
+.cat-btn:hover { border-color: var(--ink2); background: var(--cream2); }
+.cat-btn.selected { border-color: var(--ink); background: var(--cream2); color: var(--ink); font-weight: 600; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── TOAST ── */
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 300; display: flex; flex-direction: column; gap: 8px; max-width: 320px; }
+.toast {
+  background: var(--paper); border: 1px solid var(--border2);
+  border-left: 3px solid var(--ok);
+  border-radius: 10px; padding: 11px 15px;
+  box-shadow: var(--shadow2); animation: slideIn 0.3s ease; font-size: 0.83rem;
+}
+.toast-title { font-weight: 600; font-size: 0.78rem; color: var(--ok); margin-bottom: 2px; }
+.toast-msg { color: var(--ink2); line-height: 1.4; }
+.toast.warn { border-left-color: var(--soon); } .toast.warn .toast-title { color: var(--soon); }
+.toast.success { border-left-color: var(--p-low); } .toast.success .toast-title { color: #16a34a; }
+.toast.error { border-left-color: var(--overdue); } .toast.error .toast-title { color: var(--overdue); }
+@keyframes slideIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+/* ── NOTIFY LOG ── */
+.notify-log {
+  background: var(--paper); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.4rem; margin-top: 1.5rem; box-shadow: var(--shadow);
+}
+.log-entry { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+.log-entry:last-child { border-bottom: none; }
+.log-time { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--ink3); flex-shrink: 0; padding-top: 1px; }
+.log-text { color: var(--ink2); line-height: 1.4; }
+
+/* ── GCAL SECTION ── */
+.gcal-note { font-size: 0.78rem; color: var(--ink3); font-style: italic; margin-top: 8px; line-height: 1.5; }
+
+/* Habit Tracker */
+.habit-section { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; margin-top: 1.5rem; box-shadow: var(--shadow); }
+.habit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+.habit-card {
+  background: var(--cream); border: 1.5px solid var(--border2); border-radius: 10px;
+  padding: 12px 14px; cursor: pointer; transition: all 0.2s; position: relative;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.habit-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(44,36,22,0.1); }
+.habit-card.done { background: #f0fdf4; border-color: #4ade80; }
+.habit-card.done .habit-name { text-decoration: none; color: #14532d; }
+.habit-icon { font-size: 1.4rem; }
+.habit-name { font-size: 0.85rem; font-weight: 500; color: var(--ink); line-height: 1.3; }
+.habit-streak { font-size: 0.72rem; color: var(--ink3); font-family: 'DM Mono', monospace; }
+.habit-streak.hot { color: #ea580c; }
+.habit-check { position: absolute; top: 8px; right: 10px; font-size: 1rem; }
+.habit-progress {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  font-size: 0.78rem; color: var(--ink2);
+}
+.habit-bar { flex: 1; height: 6px; background: var(--cream2); border-radius: 3px; overflow: hidden; }
+.habit-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #4ade80, #16a34a); transition: width 0.4s; }
+
+/* Weekly Review */
+.review-section { background: linear-gradient(135deg, #f9f5ff 0%, #f3e8ff 100%); border: 1px solid #d8b4fe; border-radius: var(--radius); padding: 1.4rem; margin-top: 1.5rem; box-shadow: var(--shadow); }
+.review-q { margin-bottom: 12px; }
+.review-q label { font-size: 0.82rem; font-weight: 500; color: #6d28d9; display: block; margin-bottom: 4px; }
+.review-q textarea { width: 100%; background: white; border: 1.5px solid #ddd6fe; border-radius: 8px; padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--ink); resize: vertical; outline: none; min-height: 60px; }
+.review-q textarea:focus { border-color: #7c3aed; }
+.review-entry { background: white; border: 1px solid #ddd6fe; border-left: 3px solid #7c3aed; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; }
+.review-entry-date { font-size: 0.72rem; color: #7c3aed; font-family: 'DM Mono', monospace; margin-bottom: 6px; }
+.review-entry-text { font-size: 0.82rem; color: var(--ink2); line-height: 1.5; }
+
+/* Notes & Journal */
+.notes-section { background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.4rem; margin-top: 1.5rem; box-shadow: var(--shadow); }
+.note-item { background: #fffbf0; border: 1px solid #f0e0a0; border-left: 3px solid #f0c040; border-radius: 8px; padding: 10px 14px; margin-bottom: 8px; transition: all 0.15s; }
+.note-item:hover { box-shadow: 0 2px 8px rgba(44,36,22,0.07); }
+.note-text { font-size: 0.9rem; color: var(--ink); line-height: 1.5; white-space: pre-wrap; }
+.note-meta { font-size: 0.72rem; color: var(--ink3); margin-top: 5px; display: flex; gap: 10px; align-items: center; }
+.note-search { width: 100%; background: var(--cream); border: 1.5px solid var(--border2); border-radius: 8px; padding: 8px 14px; color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; margin-bottom: 12px; }
+.note-search:focus { border-color: var(--ink2); }
+.gcal-link { color: var(--ok); text-decoration: none; }
+.gcal-link:hover { text-decoration: underline; }
+
+/* Panchang sun times */
+.sun-times {
+  display: flex; gap: 16px; align-items: center;
+  padding: 8px 12px; background: linear-gradient(90deg, #fff8e1, #e8f5e9);
+  border-radius: 8px; margin-bottom: 8px; font-size: 0.82rem;
+}
+.sun-time { display: flex; align-items: center; gap: 5px; color: var(--ink2); }
+
+/* BAPA event detail */
+.bapa-event {
+  background: var(--cream); border-radius: 8px; padding: 8px 12px;
+  margin-bottom: 6px; border-left: 3px solid var(--bapa-border);
+  font-size: 0.85rem;
+}
+.bapa-event-title { font-weight: 600; color: var(--bapa-text); margin-bottom: 2px; }
+.bapa-event-meta  { font-size: 0.75rem; color: var(--ink3); display:flex; gap:8px; flex-wrap:wrap; margin-top:3px; }
+
+@media (max-width: 640px) {
+  main { padding: 1rem; }
+  .board { grid-template-columns: 1fr; }
+  header { padding: 0 1rem; }
+  .settings-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Utu's Board <span>· AI ASSISTANT v3</span></div>
+  <div class="header-right">
+    <span id="clock"></span>
+    <button class="btn btn-ghost" onclick="scrollToAdd()">+ Add Task</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- Master's Daily Message -->
+  <div class="master-msg" id="masterMsg">
+    <div class="master-msg-body">
+      <div class="master-msg-label">🕉️ Sadguru Whispers · <span id="masterDate"></span></div>
+      <div class="master-msg-text" id="masterText"></div>
+    </div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar">
+    <div class="stat-chip"><span class="count" id="sc-total">0</span><span class="label">Pending</span></div>
+    <div class="stat-chip overdue"><span class="count" id="sc-overdue">0</span><span class="label">Overdue</span></div>
+    <div class="stat-chip soon"><span class="count" id="sc-soon">0</span><span class="label">Due Soon</span></div>
+    <div class="stat-chip done-chip"><span class="count" id="sc-done">0</span><span class="label">Done Today</span></div>
+    <div class="stat-chip" style="margin-left:auto;cursor:pointer" onclick="simulateReminderCheck()">
+      <span>🔔</span><span class="label">Check Reminders</span>
+    </div>
+  </div>
+
+  <!-- Add Task Panel -->
+  <div class="input-panel" id="addPanel">
+    <div class="panel-title">✦ Add a task or reminder</div>
+    <div class="input-row">
+      <textarea class="task-input" id="taskInput" rows="2"
+        placeholder="Type a task... e.g. 'Buy vegetables tomorrow 6pm', 'Morning meditation at 6am daily', 'Submit report by Friday'"
+        onkeydown="handleInputKey(event)"></textarea>
+      <button class="btn btn-primary" onclick="addTask()" style="height:46px;align-self:flex-start">Add</button>
+    </div>
+    <div class="input-row2">
+      <div>
+        <select id="catSelect">
+          <option value="auto">🤖 Auto-detect</option>
+          <option value="Self">✨ Self</option>
+          <option value="Sadhana">🕉️ Sadhana</option>
+          <option value="Seva">🙏 Seva</option>
+          <option value="Personal">👤 Personal</option>
+          <option value="Home">🏠 Home</option>
+          <option value="Office">💼 Office</option>
+          <option value="Shopping">🛒 Shopping</option>
+          <option value="Miscl">📌 Miscl</option>
+          <option value="BAPA">🕉️ BAPA</option>
+          <option value="Panchang">🗓️ Panchang</option>
+        </select>
+      </div>
+      <div>
+        <input type="datetime-local" id="dueInput">
+      </div>
+      <div class="priority-sel">
+        <label>Priority:</label>
+        <button class="p-btn" id="pb-high"   onclick="setPriority('high')"  >🔴 High</button>
+        <button class="p-btn" id="pb-medium" onclick="setPriority('medium')">🟡 Medium</button>
+        <button class="p-btn" id="pb-low"    onclick="setPriority('low')"   >🟢 Low</button>
+      </div>
+    </div>
+    <div class="recur-row">
+      <label>Repeat:</label>
+      <button class="recur-btn" id="rb-none"    onclick="setRecur('none')">None</button>
+      <button class="recur-btn" id="rb-daily"   onclick="setRecur('daily')">Daily</button>
+      <button class="recur-btn" id="rb-weekly"  onclick="setRecur('weekly')">Weekly</button>
+      <button class="recur-btn" id="rb-monthly" onclick="setRecur('monthly')">Monthly</button>
+      <button class="recur-btn" id="rb-custom"  onclick="setRecur('custom')">Custom</button>
+      <input type="text" id="recurCustom" placeholder="e.g. every 3 days" style="display:none;width:140px;font-size:0.8rem">
+    </div>
+    <div class="thinking-indicator" id="thinkingIndicator">
+      <span class="think-dot"></span><span class="think-dot"></span><span class="think-dot"></span>
+      AI is classifying your task...
+    </div>
+  </div>
+
+  <!-- Board -->
+  <div class="board-header">
+    <div class="board-title">Your Tasks</div>
+    <div class="filter-chips">
+      <button class="filter-chip active" onclick="setFilter('all',this)">All</button>
+      <button class="filter-chip" onclick="setFilter('pending',this)">Pending</button>
+      <button class="filter-chip" onclick="setFilter('overdue',this)">Overdue</button>
+      <button class="filter-chip" onclick="setFilter('today',this)">Today</button>
+      <button class="filter-chip" onclick="setFilter('high',this)">🔴 High</button>
+      <button class="filter-chip" onclick="setFilter('recurring',this)">🔁 Recurring</button>
+      <button class="filter-chip" onclick="setFilter('done',this)">Done</button>
+    </div>
+  </div>
+
+  <div class="board" id="board" style="grid-template-columns: repeat(auto-fill, minmax(270px, 1fr))"></div>
+
+  <!-- Notes & Journal -->
+  <div class="notes-section" id="notesSection">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="panel-title" style="margin-bottom:0">📓 Notes & Journal</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:0.75rem;color:var(--ink3);font-style:italic">Send <code style="background:var(--cream2);padding:1px 6px;border-radius:4px">/note your text</code> to bot</span>
+        <button class="btn btn-primary" onclick="addNoteFromDashboard()" style="font-size:0.72rem">+ Add Note</button>
+        <button class="btn btn-ghost" onclick="clearDoneNotes()" style="font-size:0.72rem">Clear old</button>
+      </div>
+    </div>
+    <input type="text" class="note-search" id="noteSearch" placeholder="🔍 Search notes..." oninput="filterNotes()">
+    <div id="notesList"><div class="empty-state">No notes yet. Send /note [text] to @UtpalKarma_bot</div></div>
+  </div>
+
+  <!-- Habit Tracker -->
+  <div class="habit-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px">
+      <div class="panel-title" style="margin-bottom:0">🔥 Daily Habits</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span id="habitDate" style="font-size:0.75rem;color:var(--ink3)"></span>
+        <button class="btn btn-ghost" onclick="resetHabitsForToday()" style="font-size:0.72rem">Reset Today</button>
+      </div>
+    </div>
+    <div class="habit-progress">
+      <span id="habitProgressText" style="font-size:0.8rem;color:var(--ink2)">0 of 8 done today</span>
+      <div class="habit-bar" style="max-width:200px"><div class="habit-bar-fill" id="habitBarFill" style="width:0%"></div></div>
+    </div>
+    <div class="habit-grid" id="habitGrid"></div>
+  </div>
+
+  <!-- Weekly Review -->
+  <div class="review-section" id="weeklyReviewSection">
+    <div class="panel-title" style="margin-bottom:12px;color:#6d28d9">📖 Weekly Review</div>
+    <div id="reviewForm">
+      <div class="review-q">
+        <label>1. What went well this week? 🌟</label>
+        <textarea id="rq1" placeholder="Share your wins, gratitude, moments of grace..."></textarea>
+      </div>
+      <div class="review-q">
+        <label>2. What could have been better? 🌱</label>
+        <textarea id="rq2" placeholder="Honest reflection — what habits slipped, what distracted you..."></textarea>
+      </div>
+      <div class="review-q">
+        <label>3. What is your intention for next week? 🙏</label>
+        <textarea id="rq3" placeholder="One clear focus, one spiritual intention, one practical goal..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveWeeklyReview()" style="margin-top:4px">Save Review 📖</button>
+    </div>
+    <div id="reviewHistory" style="margin-top:16px"></div>
+  </div>
+
+  <!-- Notification Log -->
+  <div class="notify-log" id="notifyLog">
+    <div class="panel-title">📋 Notification Log</div>
+    <div id="logList"><div class="empty-state">No notifications yet.</div></div>
+  </div>
+
+  <!-- Settings Grid (moved to bottom) -->
+  <details style="margin-top:1.5rem">
+    <summary style="font-family:'Playfair Display',serif;font-style:italic;font-size:0.95rem;color:var(--ink2);cursor:pointer;padding:1rem 1.5rem;background:var(--paper);border:1px solid var(--border);border-radius:var(--radius);list-style:none;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)">
+      <span>⚙️ Settings — Telegram, Cloud Sync & Google Calendar</span>
+      <span style="font-size:0.75rem;color:var(--ink3)">tap to expand ▾</span>
+    </summary>
+    <div style="background:var(--paper);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:1.5rem;box-shadow:var(--shadow)">
+      <div class="settings-grid">
+
+        <!-- Telegram -->
+        <div class="settings-panel">
+          <div class="panel-title">✈️ Telegram Notifications</div>
+          <div class="field-group">
+            <span class="field-label">Bot Token</span>
+            <input type="password" id="tgToken" class="field-input" placeholder="123456:ABC..."
+              oninput="saveTgSettings()" onfocus="this.type='text'" onblur="this.type='password'">
+          </div>
+          <div class="field-group">
+            <span class="field-label">Chat ID</span>
+            <input type="text" id="tgChat" class="field-input" placeholder="500038201" oninput="saveTgSettings()">
+          </div>
+          <div class="toggle-row"><input type="checkbox" id="reminderEnabled" onchange="saveTgSettings()" checked><label for="reminderEnabled">Reminders at due time</label></div>
+          <div class="toggle-row"><input type="checkbox" id="overdueEnabled" onchange="saveTgSettings()" checked><label for="overdueEnabled">3-day overdue alerts</label></div>
+          <div class="toggle-row"><input type="checkbox" id="morningDigest" onchange="saveTgSettings()"><label for="morningDigest">Morning digest at 9 AM</label></div>
+          <button class="btn btn-ghost" onclick="testTelegram()" style="margin-top:10px;font-size:0.78rem">⚡ Test Connection</button>
+          <div id="tgStatus" style="display:none;margin-top:8px"></div>
+        </div>
+
+        <!-- Cloud Sync -->
+        <div class="settings-panel">
+          <div class="panel-title">🔄 Cloud Sync — Dashboard ↔ Bot</div>
+          <div class="field-group">
+            <span class="field-label">Gist ID</span>
+            <input type="text" id="gistId" class="field-input" placeholder="a5fb5f1b..." oninput="saveGistSettings()">
+          </div>
+          <div class="field-group">
+            <span class="field-label">GitHub Token</span>
+            <input type="password" id="gistToken" class="field-input" placeholder="ghp_..."
+              oninput="saveGistSettings()" onfocus="this.type='text'" onblur="this.type='password'">
+          </div>
+          <button class="btn btn-ghost" onclick="testGistSync()" style="margin-top:4px;font-size:0.78rem">⚡ Test Sync</button>
+          <div id="gistStatus" style="display:none;margin-top:8px"></div>
+
+          <!-- Google Calendar -->
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+            <div class="panel-title" style="margin-bottom:8px">📅 Google Calendar</div>
+            <div id="gcalSignedOut">
+              <p class="gcal-note">Sign in with Google to sync all your calendars with Utu's Board.</p>
+              <button class="btn btn-ghost" onclick="gcalSignIn()" style="margin-top:8px;font-size:0.78rem;display:flex;align-items:center;gap:6px">
+                <img src="https://www.google.com/favicon.ico" width="14" height="14"> Sign in with Google
+              </button>
+            </div>
+            <div id="gcalSignedIn" style="display:none">
+              <div id="gcalUserInfo" style="font-size:0.82rem;color:var(--ink2);margin-bottom:8px"></div>
+              <div class="toggle-row"><input type="checkbox" id="gcalSyncTasks" onchange="saveGcalSettings()" checked><label for="gcalSyncTasks">Add tasks with due dates to Calendar</label></div>
+              <div class="toggle-row"><input type="checkbox" id="gtasksSyncEnabled" onchange="saveGcalSettings()"><label for="gtasksSyncEnabled">Also add to Google Tasks</label></div>
+              <div style="margin-top:10px">
+                <span class="field-label">Days to show</span>
+                <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap">
+                  <button class="recur-btn active" id="days-btn-7"  onclick="setGcalDays(7,this)">7 days</button>
+                  <button class="recur-btn" id="days-btn-14" onclick="setGcalDays(14,this)">14 days</button>
+                  <button class="recur-btn" id="days-btn-30" onclick="setGcalDays(30,this)">30 days</button>
+                </div>
+              </div>
+              <div style="margin-top:10px">
+                <span class="field-label">Your Calendars</span>
+                <div id="gcalCalendarList" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto"></div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+                <button class="btn btn-ghost" onclick="loadGcalEvents()" style="font-size:0.75rem">🔄 Sync Now</button>
+                <button class="btn btn-ghost" onclick="gcalSignOut()" style="font-size:0.75rem;color:var(--overdue)">Sign Out</button>
+              </div>
+              <div id="gcalStatus" style="font-size:0.75rem;color:var(--ink3);margin-top:6px;font-style:italic"></div>
+            </div>
+            <input type="hidden" id="gcalWebhook">
+            <input type="hidden" id="gcalEnabled" value="true">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </details>
+
+</main>
+
+<!-- Reminder Modal -->
+<div class="overlay" id="reminderOverlay" onclick="closeReminderModal(event)">
+  <div class="modal" style="width:340px">
+    <h3>🔔 Set Reminder</h3>
+    <div class="task-preview" id="reminderTaskPreview"></div>
+    <div style="margin-bottom:1rem">
+      <span class="field-label">Date & Time</span>
+      <input type="datetime-local" id="reminderDateTime" style="width:100%;margin-top:6px">
+    </div>
+    <div style="margin-bottom:1rem">
+      <span class="field-label">Quick Pick</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+        <button class="recur-btn" onclick="setQuickReminder(30)">in 30 min</button>
+        <button class="recur-btn" onclick="setQuickReminder(60)">in 1 hour</button>
+        <button class="recur-btn" onclick="setQuickReminder(180)">in 3 hours</button>
+        <button class="recur-btn" onclick="setQuickReminder(1440)">Tomorrow 9am</button>
+        <button class="recur-btn" onclick="setQuickReminder(2880)">In 2 days</button>
+        <button class="recur-btn" onclick="setQuickReminder(10080)">Next week</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeReminderModal()">Cancel</button>
+      <button class="btn" style="background:#f97316;color:white" onclick="confirmReminder()">Set Reminder 🔔</button>
+    </div>
+  </div>
+</div>
+
+<!-- Move Modal -->
+<div class="overlay" id="moveOverlay" onclick="closeMoveModal(event)">
+  <div class="modal">
+    <h3>Move Task</h3>
+    <div class="task-preview" id="moveTaskPreview"></div>
+    <div class="cat-grid" id="moveCatGrid"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeMoveModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmMove()">Move & Train AI</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════
+const CATEGORIES = [
+  {id:'BAPA',     icon:'🕉️', special:true},
+  {id:'Self',     icon:'✨'}, {id:'Sadhana', icon:'🕉️'},
+  {id:'Seva',     icon:'🙏'}, {id:'Personal',icon:'👤'},
+  {id:'Home',     icon:'🏠'}, {id:'Office',  icon:'💼'},
+  {id:'Shopping', icon:'🛒'}, {id:'Miscl',   icon:'📌'},
+  {id:'Panchang', icon:'🗓️', special:true},
+];
+
+// Calendar → Category mapping (user configurable)
+let calCategoryMap = JSON.parse(localStorage.getItem('kb_cal_cat_map') || '{}');
+// Auto-mapping: Pujya Gurudevshri → BAPA, Seva → Seva, Swadhyay → Sadhana etc.
+// Map is built automatically on first Google Calendar sync
+
+const KEYWORDS = {
+  Self:     ['health','exercise','gym','run','walk','sleep','diet','workout','fitness','doctor','medicine','relax','haircut','spa','therapy','myself'],
+  Sadhana:  ['meditation','meditate','pray','prayer','puja','mantra','japa','yoga','spiritual','temple','sadhana','pooja','aarti','bhajan','kirtan','satsang','gita','dharma','worship','fast','fasting'],
+  Seva:     ['seva','volunteer','donate','charity','community','service','ngo','give back'],
+  Personal: ['friend','family','birthday','anniversary','call','meet','visit','party','celebration','relationship','wedding','father','mother','brother','sister','cousin','uncle','aunt','maa','baba'],
+  Home:     ['home','house','clean','repair','fix','plumber','electricity','cook','laundry','wash','garden','plants','furniture','rent','maintenance','kitchen','bedroom'],
+  Office:   ['office','work','meeting','report','project','deadline','client','email','presentation','boss','team','manager','submit','review','proposal','invoice','salary','hr','business','conference'],
+  Shopping: ['buy','shop','purchase','order','groceries','grocery','amazon','flipkart','mall','market','vegetables','fruits','milk','eggs','bread','clothes','shoes','electronics','pharmacy','pick up'],
+};
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let tasks      = JSON.parse(localStorage.getItem('kb_tasks')   || '[]');
+let aiMemory   = JSON.parse(localStorage.getItem('kb_memory')  || '{}');
+let notifyLog  = JSON.parse(localStorage.getItem('kb_log')     || '[]');
+let settings   = JSON.parse(localStorage.getItem('kb_settings')|| '{"tgToken":"","tgChat":"","reminderEnabled":true,"overdueEnabled":true,"morningDigest":false}');
+let masterMsg  = JSON.parse(localStorage.getItem('kb_master')  || 'null');
+
+let currentFilter = 'all';
+let movingTaskId  = null;
+let moveTargetCat = null;
+let draggedId     = null;
+let selectedPriority = 'medium';
+let selectedRecur    = 'none';
+
+const GIST_ID    = () => localStorage.getItem('kb_gist_id')    || '';
+const GIST_TOKEN = () => localStorage.getItem('kb_gist_token') || '';
+
+// ═══════════════════════════════════════════
+//  CLASSIFY
+// ═══════════════════════════════════════════
+function classifyTask(text) {
+  const lower = text.toLowerCase();
+  for (const [phrase, cat] of Object.entries(aiMemory)) {
+    if (lower.includes(phrase.toLowerCase())) return cat;
+  }
+  const scores = {};
+  for (const [cat, kws] of Object.entries(KEYWORDS)) {
+    scores[cat] = 0;
+    for (const kw of kws) if (lower.includes(kw)) scores[cat] += kw.split(' ').length;
+  }
+  const best = Object.entries(scores).sort((a,b)=>b[1]-a[1])[0];
+  return best[1] > 0 ? best[0] : 'Miscl';
+}
+
+async function classifyWithAI(text) {
+  document.getElementById('thinkingIndicator').classList.add('visible');
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514", max_tokens: 200,
+        messages: [{ role: "user", content:
+          `Classify this task into one category: Self, Sadhana, Seva, Personal, Home, Office, Shopping, Miscl.\nTask: "${text}"\nReply JSON only: {"category":"Office","priority":"medium"}\npriority: high/medium/low based on urgency.` }]
+      })
+    });
+    const d = await r.json();
+    const raw = (d.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim();
+    const p = JSON.parse(raw);
+    document.getElementById('thinkingIndicator').classList.remove('visible');
+    return { category: p.category || classifyTask(text), priority: p.priority || selectedPriority };
+  } catch(e) {
+    document.getElementById('thinkingIndicator').classList.remove('visible');
+    return { category: classifyTask(text), priority: selectedPriority };
+  }
+}
+
+// ═══════════════════════════════════════════
+//  PRIORITY & RECUR UI
+// ═══════════════════════════════════════════
+function setPriority(p) {
+  selectedPriority = p;
+  ['high','medium','low'].forEach(x => {
+    const btn = document.getElementById('pb-'+x);
+    btn.className = 'p-btn' + (x === p ? ' active-'+x : '');
+  });
+}
+
+function setRecur(r) {
+  selectedRecur = r;
+  ['none','daily','weekly','monthly','custom'].forEach(x => {
+    document.getElementById('rb-'+x).classList.toggle('active', x === r);
+  });
+  document.getElementById('recurCustom').style.display = r === 'custom' ? 'inline-block' : 'none';
+}
+
+// ═══════════════════════════════════════════
+//  ADD TASK
+// ═══════════════════════════════════════════
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+async function addTask() {
+  const text = document.getElementById('taskInput').value.trim();
+  if (!text) return;
+
+  const catSel = document.getElementById('catSelect').value;
+  const due    = document.getElementById('dueInput').value || null;
+  const recur  = selectedRecur === 'none' ? null :
+                 selectedRecur === 'custom' ? document.getElementById('recurCustom').value.trim() || null
+                 : selectedRecur;
+
+  let category = catSel, priority = selectedPriority, aiClassified = false;
+
+  if (catSel === 'auto') {
+    const res = await classifyWithAI(text);
+    category = res.category; priority = res.priority; aiClassified = true;
+  }
+
+  const task = { id:genId(), text, category, due, priority, recur, done:false,
+    created:new Date().toISOString(), aiClassified, reminderSent:false, source:'dashboard', gcalSent:false };
+
+  tasks.unshift(task);
+  save();
+  render();
+
+  // Send to Google Calendar and Tasks if signed in
+  if (due && gcalAccessToken && Date.now() < gcalTokenExpiry) {
+    addEventToGcal(task);
+    addToGoogleTasks(task);
+  }
+
+  document.getElementById('taskInput').value = '';
+  document.getElementById('dueInput').value  = '';
+  setPriority('medium');
+  setRecur('none');
+
+  showToast(aiClassified ? 'AI Classified' : '✓ Added',
+    `<b>${category}</b> · ${priority} priority${recur ? ' · repeats '+recur : ''}`,
+    aiClassified ? 'default' : 'success');
+}
+
+function handleInputKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addTask();} }
+function scrollToAdd() { document.getElementById('addPanel').scrollIntoView({behavior:'smooth'}); document.getElementById('taskInput').focus(); }
+
+// ═══════════════════════════════════════════
+//  TASK ACTIONS
+// ═══════════════════════════════════════════
+function toggleCard(cardEl, catId) {
+  // Don't expand when clicking tasks
+  if (event.target.closest('.task-item')) return;
+  if (event.target.closest('.task-btn')) return;
+  const isExpanded = cardEl.classList.contains('expanded');
+  // Collapse all cards first
+  document.querySelectorAll('.cat-card.expanded').forEach(c => c.classList.remove('expanded'));
+  // Expand if wasn't expanded
+  if (!isExpanded) {
+    cardEl.classList.add('expanded');
+    cardEl.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  // Re-render so Panchang updates its filtered tasks
+  render();
+}
+
+function toggleDone(id) {
+  const t = tasks.find(x=>x.id===id); if(!t) return;
+  t.done = !t.done;
+  if (t.done) {
+    t.doneAt = new Date().toISOString();
+    // Handle recurring — create next occurrence
+    if (t.recur && t.recur !== 'none') createNextRecurrence(t);
+  }
+  save(); render();
+  if (t.done) showToast('✓ Done', t.text.slice(0,50), 'success');
+}
+
+function createNextRecurrence(t) {
+  const base = t.due ? new Date(t.due) : new Date();
+  let next = new Date(base);
+  if      (t.recur === 'daily')   next.setDate(next.getDate() + 1);
+  else if (t.recur === 'weekly')  next.setDate(next.getDate() + 7);
+  else if (t.recur === 'monthly') next.setMonth(next.getMonth() + 1);
+  else {
+    const match = (t.recur || '').match(/(\d+)\s*day/);
+    if (match) next.setDate(next.getDate() + parseInt(match[1]));
+    else next.setDate(next.getDate() + 7);
+  }
+  const newTask = { ...t, id:genId(), done:false, doneAt:null,
+    due:next.toISOString().slice(0,16), created:new Date().toISOString(), reminderSent:false, gcalSent:false };
+  tasks.unshift(newTask);
+  showToast('🔁 Recurring', `Next: ${t.text.slice(0,30)}... scheduled`, 'default');
+}
+
+function deleteTask(id) { tasks = tasks.filter(x=>x.id!==id); save(); render(); }
+
+function openMoveModal(id) {
+  movingTaskId = id; moveTargetCat = null;
+  const t = tasks.find(x=>x.id===id); if(!t) return;
+  document.getElementById('moveTaskPreview').textContent = t.text;
+  document.getElementById('moveCatGrid').innerHTML = CATEGORIES.map(c =>
+    `<button class="cat-btn ${c.id===t.category?'selected':''}" onclick="selectMoveCat('${c.id}',this)">
+      <span>${c.icon}</span>${c.id}</button>`).join('');
+  document.getElementById('moveOverlay').classList.add('open');
+}
+
+function selectMoveCat(catId, btn) {
+  moveTargetCat = catId;
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function confirmMove() {
+  if (!movingTaskId || !moveTargetCat) return;
+  const t = tasks.find(x=>x.id===movingTaskId); if(!t) return;
+  const old = t.category;
+  t.category = moveTargetCat; t.aiClassified = false;
+  const words = t.text.toLowerCase().split(/\s+/).filter(w=>w.length>3).slice(0,3);
+  words.forEach(w => { aiMemory[w] = moveTargetCat; });
+  save(); render(); closeMoveModal();
+  showToast('AI Trained ✦', `Moved ${old} → ${moveTargetCat}`, 'success');
+}
+
+function closeMoveModal(e) {
+  if (e && e.target !== document.getElementById('moveOverlay')) return;
+  document.getElementById('moveOverlay').classList.remove('open');
+  movingTaskId = null;
+}
+
+// ═══════════════════════════════════════════
+//  GOOGLE CALENDAR
+// ═══════════════════════════════════════════
+async function sendToGcal(task) {
+  const webhook = settings.gcalWebhook;
+  if (!webhook || !task.due) return;
+  try {
+    await fetch(webhook, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        title: task.text,
+        start: task.due,
+        category: task.category,
+        priority: task.priority,
+      })
+    });
+    task.gcalSent = true;
+    addLog('📅', `Calendar: ${task.text.slice(0,40)}`);
+  } catch(e) { console.log('GCal webhook failed:', e); }
+}
+
+function saveGcalSettings() {
+  settings.gcalWebhook = document.getElementById('gcalWebhook').value.trim();
+  settings.gcalEnabled = document.getElementById('gcalEnabled').checked;
+  localStorage.setItem('kb_settings', JSON.stringify(settings));
+}
+
+// ═══════════════════════════════════════════
+//  MASTER MESSAGE
+// ═══════════════════════════════════════════
+function showMasterMessage(msg) {
+  if (!msg) return;
+  const el = document.getElementById('masterMsg');
+  document.getElementById('masterText').textContent = msg.text;
+  document.getElementById('masterDate').textContent = new Date(msg.date).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  el.classList.add('visible');
+  masterMsg = msg;
+  localStorage.setItem('kb_master', JSON.stringify(msg));
+}
+
+// ═══════════════════════════════════════════
+//  TELEGRAM
+// ═══════════════════════════════════════════
+function saveTgSettings() {
+  settings.tgToken         = document.getElementById('tgToken').value.trim();
+  settings.tgChat          = document.getElementById('tgChat').value.trim();
+  settings.reminderEnabled = document.getElementById('reminderEnabled').checked;
+  settings.overdueEnabled  = document.getElementById('overdueEnabled').checked;
+  settings.morningDigest   = document.getElementById('morningDigest').checked;
+  localStorage.setItem('kb_settings', JSON.stringify(settings));
+}
+
+function loadTgSettings() {
+  if (settings.tgToken) document.getElementById('tgToken').value = settings.tgToken;
+  if (settings.tgChat)  document.getElementById('tgChat').value  = settings.tgChat;
+  document.getElementById('reminderEnabled').checked = settings.reminderEnabled !== false;
+  document.getElementById('overdueEnabled').checked  = settings.overdueEnabled  !== false;
+  document.getElementById('morningDigest').checked   = !!settings.morningDigest;
+  if (settings.gcalWebhook) document.getElementById('gcalWebhook').value = settings.gcalWebhook;
+  if (settings.gcalEnabled) document.getElementById('gcalEnabled').checked = true;
+}
+
+async function sendTelegram(msg) {
+  const token  = settings.tgToken;
+  const chatId = settings.tgChat;
+  if (!token || !chatId) return false;
+  const payload = JSON.stringify({chat_id:chatId, text:msg, parse_mode:'HTML'});
+  const TG_URL  = `https://api.telegram.org/bot${token}/sendMessage`;
+  const proxies = [
+    async () => { const r=await fetch(TG_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:payload}); return r.json(); },
+    async () => { const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(TG_URL)}`,{method:'POST',headers:{'Content-Type':'application/json','x-requested-with':'XMLHttpRequest'},body:payload}); return r.json(); },
+  ];
+  for (const attempt of proxies) {
+    try { const d=await attempt(); if(d&&d.ok) return true; } catch(e){}
+  }
+  return false;
+}
+
+async function testTelegram() {
+  saveTgSettings();
+  const statusEl = document.getElementById('tgStatus');
+  const show = (msg,type) => {
+    statusEl.style.display='block';
+    statusEl.className = 'status-pill '+type;
+    statusEl.innerHTML = msg;
+  };
+  if (!settings.tgToken) { show('✕ No Bot Token entered.','error'); return; }
+  if (!settings.tgChat)  { show('✕ No Chat ID entered.','error'); return; }
+  show('⏳ Connecting...','info');
+  const ok = await sendTelegram(`✅ <b>Utu's Board V3 Connected!</b>\n\nAll systems live. 🙏\n🕐 ${new Date().toLocaleString('en-IN')}`);
+  if (ok) { show('✓ Connected! Check Telegram.','success'); addLog('✈️','Test message sent'); }
+  else    { show('✕ Failed — check token and Chat ID.','error'); }
+}
+
+async function sendReminder(task, type='due') {
+  const cat    = CATEGORIES.find(c=>c.id===task.category);
+  const icon   = cat ? cat.icon : '📌';
+  const dueStr = task.due ? new Date(task.due).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+  const pEmoji = task.priority==='high'?'🔴':task.priority==='low'?'🟢':'🟡';
+
+  let msg;
+  if (type==='due') {
+    msg = `🔔 <b>Utu's Board · Reminder</b>\n\n${icon} <b>${task.category}</b> ${pEmoji}\n📝 ${task.text}\n⏰ Due: ${dueStr}`;
+  } else {
+    const days = Math.floor((new Date()-new Date(task.due))/86400000);
+    msg = `⚠️ <b>Overdue by ${days} day${days>1?'s':''}!</b>\n\n${icon} <b>${task.category}</b>\n📝 ${task.text}\n🗓 Was due: ${dueStr}`;
+  }
+
+  const ok = await sendTelegram(msg);
+  if (ok) addLog('✈️', `${type==='due'?'Reminder':'Overdue'}: ${task.text.slice(0,40)}`);
+  else { showToast('🔔 '+type, task.text.slice(0,50), 'warn'); addLog('💻','Browser toast — add Telegram token'); }
+  return ok;
+}
+
+function simulateReminderCheck() { checkReminders(true); }
+
+const _overdueAlerted = {};
+let _lastDigest = null;
+
+async function checkReminders(force=false) {
+  const now = new Date(), threeDaysAgo = new Date(now - 3*24*60*60*1000);
+  const todayKey = now.toDateString();
+
+  if (settings.morningDigest && now.getHours()===9 && _lastDigest!==todayKey) {
+    await sendWeeklyDigest(); _lastDigest = todayKey;
+  }
+
+  let changed = false;
+  for (const task of tasks) {
+    if (task.done || !task.due) continue;
+    // For gcal events, only remind if user explicitly set a reminder
+    if (task.source === 'gcal' && !task.reminderSet) continue;
+    const due = new Date(task.due);
+    const mins = (due-now)/60000;
+    if ((settings.reminderEnabled||force) && mins>=0 && mins<=30 && !task.reminderSent) {
+      await sendReminder(task,'due'); task.reminderSent=true; changed=true;
+    }
+    if ((settings.overdueEnabled||force) && due<threeDaysAgo) {
+      const key = task.id+'_'+todayKey;
+      if (!_overdueAlerted[key]) { await sendReminder(task,'overdue'); _overdueAlerted[key]=true; }
+    }
+  }
+  if (changed) save();
+  if (force) showToast('Reminders Checked','All due tasks processed','success');
+}
+
+async function sendWeeklyDigest() {
+  const now = new Date();
+  const pending = tasks.filter(t=>!t.done);
+  const overdue = pending.filter(t=>t.due&&new Date(t.due)<now);
+  const today   = pending.filter(t=>t.due&&new Date(t.due).toDateString()===now.toDateString());
+  const high    = pending.filter(t=>t.priority==='high');
+
+  let msg = `🌅 <b>Good morning, Utpal!</b>\n📅 ${now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})}\n\n`;
+  if (overdue.length) { msg+=`⚠️ <b>Overdue (${overdue.length})</b>\n`+overdue.slice(0,4).map(t=>`  • ${t.text.slice(0,40)}`).join('\n')+'\n\n'; }
+  if (today.length)   { msg+=`📌 <b>Today (${today.length})</b>\n`+today.slice(0,4).map(t=>`  • ${t.text.slice(0,40)}`).join('\n')+'\n\n'; }
+  if (high.length)    { msg+=`🔴 <b>High Priority (${high.length})</b>\n`+high.slice(0,3).map(t=>`  • ${t.text.slice(0,40)}`).join('\n')+'\n\n'; }
+  msg += `📊 Total pending: <b>${pending.length}</b>`;
+  await sendTelegram(msg);
+  addLog('🌅','Morning digest sent');
+}
+
+// ═══════════════════════════════════════════
+//  GIST SYNC
+// ═══════════════════════════════════════════
+function saveGistSettings() {
+  localStorage.setItem('kb_gist_id',    document.getElementById('gistId').value.trim());
+  localStorage.setItem('kb_gist_token', document.getElementById('gistToken').value.trim());
+}
+
+function loadGistSettings() {
+  const id    = localStorage.getItem('kb_gist_id')    || '';
+  const token = localStorage.getItem('kb_gist_token') || '';
+  if (id)    document.getElementById('gistId').value    = id;
+  if (token) document.getElementById('gistToken').value = token;
+}
+
+async function testGistSync() {
+  saveGistSettings();
+  const statusEl = document.getElementById('gistStatus');
+  const show = (msg,type) => { statusEl.style.display='block'; statusEl.className='status-pill '+type; statusEl.innerHTML=msg; };
+  const id=GIST_ID(), token=GIST_TOKEN();
+  if (!id)    { show('✕ No Gist ID','error'); return; }
+  if (!token) { show('✕ No GitHub Token','error'); return; }
+  show('⏳ Testing...','info');
+  try {
+    const r = await fetch(`https://api.github.com/gists/${id}`,{headers:{'Authorization':`token ${token}`}});
+    const d = await r.json();
+    if (d.files?.['kb_tasks.json']) { show('✓ Connected! Syncing.','success'); loadFromGist(); }
+    else if (d.message) show('✕ '+d.message,'error');
+    else show('✕ Gist found but no kb_tasks.json file.','error');
+  } catch(e) { show('✕ '+e.message,'error'); }
+}
+
+async function syncToGist() {
+  const id=GIST_ID(), token=GIST_TOKEN();
+  if (!id||!token) return;
+  try {
+    await fetch(`https://api.github.com/gists/${id}`, {
+      method:'PATCH',
+      headers:{'Authorization':`token ${token}`,'Content-Type':'application/json'},
+      body: JSON.stringify({files:{'kb_tasks.json':{content:JSON.stringify(tasks)}}})
+    });
+    // Also check for master message from bot
+    const r = await fetch(`https://api.github.com/gists/${id}`,{headers:{'Authorization':`token ${token}`}});
+    const d = await r.json();
+    if (d.files?.['kb_master.json']) {
+      const newMaster = JSON.parse(d.files['kb_master.json'].content || 'null');
+      if (newMaster) showMasterMessage(newMaster);
+    }
+  } catch(e) {}
+}
+
+async function loadFromGist() {
+  const id=GIST_ID(), token=GIST_TOKEN();
+  if (!id) return;
+  try {
+    const r = await fetch(`https://api.github.com/gists/${id}`,{headers:token?{'Authorization':`token ${token}`}:{}});
+    if (!r.ok) return;
+    const d = await r.json();
+    const content = d.files?.['kb_tasks.json']?.content;
+    if (!content) return;
+    const fileTasks = JSON.parse(content);
+    if (!Array.isArray(fileTasks)) return;
+    let changed = false;
+    for (const ft of fileTasks) {
+      const ex = tasks.find(t=>t.id===ft.id);
+      if (!ex) { tasks.unshift(ft); changed=true; }
+      else if (ex.done!==ft.done||ex.reminderSent!==ft.reminderSent) {
+        Object.assign(ex,{done:ft.done,reminderSent:ft.reminderSent,doneAt:ft.doneAt}); changed=true;
+      }
+    }
+    // Master message
+    const masterContent = d.files?.['kb_master.json']?.content;
+    if (masterContent) {
+      const newMaster = JSON.parse(masterContent);
+      if (newMaster) showMasterMessage(newMaster);
+    }
+    if (changed) { localStorage.setItem('kb_tasks',JSON.stringify(tasks)); render(); }
+
+    // Load notes from Gist
+    const notesContent = d.files?.['kb_notes.json']?.content;
+    if (notesContent) {
+      const gistNotes = JSON.parse(notesContent);
+      if (Array.isArray(gistNotes) && gistNotes.length > notes.length) {
+        notes = gistNotes;
+        localStorage.setItem('kb_notes', JSON.stringify(notes));
+        renderNotes();
+      }
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+//  DRAG & DROP
+// ═══════════════════════════════════════════
+function onDragStart(e,id) { draggedId=id; e.dataTransfer.effectAllowed='move'; setTimeout(()=>document.getElementById('task-'+id)?.classList.add('dragging'),0); }
+function onDragEnd(e,id)   { document.getElementById('task-'+id)?.classList.remove('dragging'); draggedId=null; }
+function onDragOver(e,cat) { e.preventDefault(); document.querySelectorAll('.cat-card').forEach(c=>c.classList.remove('drag-over')); document.querySelector(`.cat-card[data-cat="${cat}"]`)?.classList.add('drag-over'); }
+function onDrop(e,catId) {
+  e.preventDefault(); document.querySelectorAll('.cat-card').forEach(c=>c.classList.remove('drag-over'));
+  if (!draggedId) return;
+  const t = tasks.find(x=>x.id===draggedId); if(!t||t.category===catId) return;
+  const old=t.category; t.category=catId; t.aiClassified=false;
+  const words=t.text.toLowerCase().split(/\s+/).filter(w=>w.length>3).slice(0,3);
+  words.forEach(w=>{aiMemory[w]=catId;});
+  save(); render();
+  showToast('AI Trained','Moved '+old+' → '+catId,'success');
+}
+
+// ═══════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════
+function setFilter(f,btn) {
+  currentFilter=f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active'); render();
+}
+
+function getFilteredTasks(catId) {
+  const now=new Date(), todayS=new Date(now).setHours(0,0,0,0), todayE=new Date(now).setHours(23,59,59,999);
+  const isExpanded = document.querySelector(`.cat-card[data-cat="${catId}"]`)?.classList.contains('expanded');
+
+  return tasks.filter(t => {
+    if (t.category !== catId) return false;
+
+    // Panchang: show only today when collapsed, all when expanded
+    if (catId === 'Panchang' && t.source === 'gcal' && !isExpanded) {
+      if (!t.due) return false;
+      const due = new Date(t.due);
+      return due >= todayS && due <= todayE;
+    }
+
+    switch(currentFilter) {
+      case 'pending':   return !t.done && t.source !== 'gcal';
+      case 'done':      return t.done;
+      case 'overdue':   return !t.done && t.due && new Date(t.due)<now;
+      case 'today':     return t.due && new Date(t.due)>=todayS && new Date(t.due)<=todayE;
+      case 'high':      return !t.done && t.priority==='high';
+      case 'recurring': return !t.done && t.recur && t.recur!=='none';
+      default: return true;
+    }
+  });
+}
+
+function getStatus(t) {
+  if (t.done) return 'done';
+  if (!t.due) return null;
+  const diff=(new Date(t.due)-new Date())/3600000;
+  if (diff<0)  return 'overdue';
+  if (diff<24) return 'soon';
+  return 'ok';
+}
+
+function fmtDue(iso) {
+  if (!iso) return null;
+  const d=new Date(iso), now=new Date(), diff=d-now, abs=Math.abs(diff);
+  const mins=Math.floor(abs/60000), hrs=Math.floor(abs/3600000), days=Math.floor(abs/86400000);
+  if (diff<0) { if(days>0)return days+'d overdue'; if(hrs>0)return hrs+'h overdue'; return mins+'m overdue'; }
+  if (days>0) return 'in '+days+'d';
+  if (hrs>0)  return 'in '+hrs+'h';
+  return 'in '+mins+'m';
+}
+
+function renderTask(t) {
+  const s=getStatus(t), dl=fmtDue(t.due);
+
+  // Calendar events from Google Calendar — show as schedule items, not tasks
+  if (t.source === 'gcal') {
+    const evDate = t.due ? new Date(t.due) : null;
+    const evTime = evDate ? evDate.toLocaleString('en-IN',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    const isPast = evDate && evDate < new Date();
+    const borderColor = t.category==='BAPA' ? 'var(--bapa-border)' : t.category==='Panchang' ? '#0ea5e9' : 'var(--border2)';
+    const hasReminder = !!t.reminderSet;
+    return `<div class="task-item" id="task-${t.id}" style="background:${isPast?'var(--cream3)':'var(--cream)'};opacity:${isPast?'0.6':'1'};cursor:default;border-left:3px solid ${borderColor}">
+      <div class="task-top">
+        <span style="font-size:1rem;flex-shrink:0">📅</span>
+        <span class="task-text" style="font-size:0.85rem">${escHtml(t.text.replace('📅 ',''))}</span>
+        <div class="task-actions" style="opacity:1">
+          ${!isPast ? `<button class="task-btn" onclick="toggleGcalReminder('${t.id}')" title="${hasReminder?'Remove reminder':'Set reminder'}" style="color:${hasReminder?'var(--soon)':'var(--ink3)'}">${hasReminder?'🔔':'🔕'}</button>` : ''}
+          <button class="task-btn del" onclick="deleteTask('${t.id}')" title="Remove">✕</button>
+        </div>
+      </div>
+      <div style="padding-left:28px;margin-top:4px;display:flex;flex-direction:column;gap:4px">
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${evTime?`<span class="task-tag ${isPast?'tag-done':'tag-ok'}" style="font-size:0.68rem">🕐 ${evTime}</span>`:''}
+          ${t.gcalCalendar?`<span class="task-tag tag-gcal" style="font-size:0.68rem">${t.gcalCalendar}</span>`:''}
+          ${hasReminder?`<span class="task-tag tag-soon" style="font-size:0.68rem">🔔 on</span>`:''}
+        </div>
+        ${t.gcalLocation?`<div style="font-size:0.78rem;color:var(--ink2);display:flex;align-items:center;gap:4px">📍 ${escHtml(t.gcalLocation)}</div>`:''}
+        ${t.gcalDesc?`<div style="font-size:0.75rem;color:var(--ink3);font-style:italic;line-height:1.4">${escHtml(t.gcalDesc)}</div>`:''}
+      </div>
+    </div>`;
+  }
+
+  const pClass = t.priority ? 'p-'+t.priority : '';
+  const recurClass = (t.recur && t.recur!=='none') ? 'recurring' : '';
+  return `<div class="task-item ${pClass} ${recurClass} ${t.done?'done':''}" id="task-${t.id}"
+    draggable="true" ondragstart="onDragStart(event,'${t.id}')" ondragend="onDragEnd(event,'${t.id}')">
+    <div class="task-top">
+      <div class="task-check ${t.done?'checked':''}" onclick="toggleDone('${t.id}')">${t.done?'✓':''}</div>
+      <span class="task-text">${escHtml(t.text)}</span>
+      <div class="task-actions">
+        <button class="task-btn" onclick="openReminderModal('${t.id}')" title="Set reminder" style="${t.due?'color:var(--soon)':''}">🔔</button>
+        <button class="task-btn" onclick="openMoveModal('${t.id}')" title="Move">⇄</button>
+        <button class="task-btn del" onclick="deleteTask('${t.id}')" title="Delete">✕</button>
+      </div>
+    </div>
+    <div class="task-meta">
+      ${s==='overdue'?`<span class="task-tag tag-overdue">⚠ ${dl}</span>`:''}
+      ${s==='soon'   ?`<span class="task-tag tag-soon">⏰ ${dl}</span>`:''}
+      ${s==='ok'     ?`<span class="task-tag tag-ok">🗓 ${dl}</span>`:''}
+      ${s==='done'   ?`<span class="task-tag tag-done">✓ done</span>`:''}
+      ${t.aiClassified?`<span class="task-tag tag-ai">ai</span>`:''}
+      ${t.recur&&t.recur!=='none'?`<span class="task-tag tag-recur">🔁 ${t.recur}</span>`:''}
+    </div>
+  </div>`;
+}
+
+function render() {
+  const board=document.getElementById('board'); board.innerHTML='';
+  let total=0, overdue=0, soon=0, doneToday=0;
+  const now=new Date(), todayStart=new Date(now).setHours(0,0,0,0);
+
+  for (const cat of CATEGORIES) {
+    const filtered = getFilteredTasks(cat.id);
+    const allCat   = tasks.filter(t=>t.category===cat.id);
+    const pending  = allCat.filter(t=>!t.done);
+
+    for (const t of allCat) {
+      if (t.source === 'gcal') continue; // Don't count calendar events in task stats
+      if (!t.done) total++;
+      const s=getStatus(t);
+      if (s==='overdue') overdue++;
+      if (s==='soon')    soon++;
+      if (t.done && t.doneAt && new Date(t.doneAt)>=todayStart) doneToday++;
+    }
+
+    const card = document.createElement('div');
+    card.className='cat-card'; card.dataset.cat=cat.id;
+    if (cat.id === 'BAPA')     card.style.cssText = 'grid-column: 1 / -1; background: linear-gradient(135deg, #fff8f0 0%, #fff3e8 100%);';
+    if (cat.id === 'Panchang') {
+      card.style.cssText = 'grid-column: 1 / -1; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);';
+    }
+    card.addEventListener('dragover', e=>onDragOver(e,cat.id));
+    card.addEventListener('drop',     e=>onDrop(e,cat.id));
+
+    // Click to expand/collapse
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.task-item')) return;
+      if (e.target.closest('.task-btn')) return;
+      if (e.target.closest('.task-check')) return;
+      const isExpanded = card.classList.contains('expanded');
+      document.querySelectorAll('.cat-card.expanded').forEach(c=>c.classList.remove('expanded'));
+      if (!isExpanded) {
+        card.classList.add('expanded');
+        card.scrollIntoView({behavior:'smooth', block:'nearest'});
+      }
+    });
+
+    // Hover to peek — show expanded on hover, collapse when mouse leaves
+    card.addEventListener('mouseenter', function() {
+      if (!card.classList.contains('expanded')) {
+        card.classList.add('peeking');
+      }
+    });
+    card.addEventListener('mouseleave', function() {
+      card.classList.remove('peeking');
+    });
+    const gcalCount = allCat.filter(t=>t.source==='gcal').length;
+    const sunData = cat.id==='Panchang' ? JSON.parse(localStorage.getItem('kb_sun')||'null') : null;
+    card.innerHTML=`
+      <div class="cat-header">
+        <div class="cat-title"><span>${cat.icon}</span>${cat.id}
+          ${cat.id==='Panchang'?`<span id="panchangSunTimes" style="font-size:0.75rem;font-weight:400;color:#0369a1;margin-left:8px">${sunData?`🌅 ${sunData.rise} &nbsp; 🌇 ${sunData.set}`:''}</span>`:''}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${gcalCount>0?`<span class="cat-count" style="background:#fff3e8;color:var(--bapa-text)">📅 ${gcalCount}</span>`:''}
+          <span class="cat-count">${pending.length}</span>
+        </div>
+      </div>
+      <div class="cat-body">
+        ${filtered.length===0 ? `<div class="empty-state">No tasks</div>` : filtered.map(renderTask).join('')}
+      </div>`;
+    board.appendChild(card);
+  }
+
+  document.getElementById('sc-total').textContent   = total;
+  document.getElementById('sc-overdue').textContent = overdue;
+  document.getElementById('sc-soon').textContent    = soon;
+  document.getElementById('sc-done').textContent    = doneToday;
+}
+
+function renderLog() {
+  const list=document.getElementById('logList');
+  if (!notifyLog.length) { list.innerHTML='<div class="empty-state">No notifications yet.</div>'; return; }
+  list.innerHTML=notifyLog.slice(0,20).map(e=>`
+    <div class="log-entry">
+      <span class="log-time">${new Date(e.time).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span>
+      <span>${e.icon}</span>
+      <span class="log-text">${escHtml(e.msg)}</span>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function save() {
+  localStorage.setItem('kb_tasks', JSON.stringify(tasks));
+  localStorage.setItem('kb_memory',JSON.stringify(aiMemory));
+  syncToGist();
+}
+
+function addLog(icon,msg) {
+  notifyLog.unshift({icon,msg,time:new Date().toISOString()});
+  if (notifyLog.length>50) notifyLog.pop();
+  localStorage.setItem('kb_log',JSON.stringify(notifyLog));
+  renderLog();
+}
+
+// ── REMINDER MODAL ─────────────────────────
+let reminderTaskId = null;
+
+function openReminderModal(id) {
+  reminderTaskId = id;
+  const t = tasks.find(x=>x.id===id);
+  if (!t) return;
+  document.getElementById('reminderTaskPreview').textContent = t.text;
+  // Pre-fill with existing due date if set
+  if (t.due) {
+    const d = new Date(t.due);
+    const local = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    document.getElementById('reminderDateTime').value = local;
+  } else {
+    // Default to tomorrow 9am
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1); tomorrow.setHours(9,0,0,0);
+    const local = new Date(tomorrow.getTime() - tomorrow.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    document.getElementById('reminderDateTime').value = local;
+  }
+  document.getElementById('reminderOverlay').classList.add('open');
+}
+
+function setQuickReminder(mins) {
+  const d = new Date();
+  if (mins === 1440) { // Tomorrow 9am
+    d.setDate(d.getDate()+1); d.setHours(9,0,0,0);
+  } else {
+    d.setMinutes(d.getMinutes()+mins);
+  }
+  const local = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  document.getElementById('reminderDateTime').value = local;
+}
+
+function confirmReminder() {
+  const dt = document.getElementById('reminderDateTime').value;
+  if (!dt) { showToast('⚠️', 'Please pick a date and time', 'warn'); return; }
+  const t = tasks.find(x=>x.id===reminderTaskId);
+  if (!t) return;
+  t.due = new Date(dt).toISOString();
+  t.reminderSent = false; // reset so it fires
+  save(); render(); closeReminderModal();
+  showToast('🔔 Reminder Set', `${t.text.slice(0,40)} · ${new Date(dt).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`, 'success');
+}
+
+function closeReminderModal(e) {
+  if (e && e.target !== document.getElementById('reminderOverlay')) return;
+  document.getElementById('reminderOverlay').classList.remove('open');
+  reminderTaskId = null;
+}
+
+function toggleGcalReminder(id) {
+  const t = tasks.find(x=>x.id===id);
+  if (!t) return;
+  t.reminderSet = !t.reminderSet;
+  if (t.reminderSet) {
+    t.reminderSent = false; // reset so it fires
+    showToast('🔔 Reminder Set', `Will notify 30 min before: ${t.text.slice(0,40)}`, 'success');
+  } else {
+    showToast('🔕 Reminder Off', t.text.slice(0,40), 'default');
+  }
+  save(); render();
+}
+
+function showToast(title,msg,type='default') {
+  const c=document.getElementById('toastContainer');
+  const div=document.createElement('div');
+  div.className=`toast ${type}`;
+  div.innerHTML=`<div class="toast-title">${title}</div><div class="toast-msg">${msg}</div>`;
+  c.appendChild(div);
+  setTimeout(()=>{div.style.opacity='0';div.style.transform='translateX(120%)';div.style.transition='0.3s';setTimeout(()=>div.remove(),300);},3500);
+}
+
+function updateClock() {
+  const el=document.getElementById('clock');
+  if(el) el.textContent=new Date().toLocaleString('en-IN',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+
+// ═══════════════════════════════════════════
+//  SEED DATA — disabled, board starts clean
+// ═══════════════════════════════════════════
+function seedData() {
+  // No demo tasks — clean slate
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+seedData();
+render();
+renderLog();
+updateClock();
+loadTgSettings();
+loadGistSettings();
+setPriority('medium');
+setRecur('none');
+// Always load fresh from Gist — don't rely on localStorage cache
+loadFromGist();
+loadNotesFromGist();
+loadHabitsFromGist();
+renderNotes();
+renderHabits();
+renderWeeklyReviews();
+fetchSunTimes(); // Load sunrise/sunset on startup
+
+setInterval(updateClock,  60000);
+setInterval(checkReminders, 60000);
+setInterval(loadFromGist,    3000); // sync every 3 seconds
+
+// Press Escape to collapse expanded card
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.cat-card.expanded').forEach(c=>c.classList.remove('expanded'));
+});
+loadSunriseSunset(); // Load sunrise/sunset for Panchang
+setInterval(loadSunriseSunset, 3600000); // Refresh hourly
+</script>
+<!-- Google OAuth via direct popup — no redirect URI needed -->
+<script>
+// ═══════════════════════════════════════════
+//  GOOGLE CALENDAR OAUTH
+// ═══════════════════════════════════════════
+const GCAL_CLIENT_ID = '1059957340919-lcrjfg8vejj6fq3aq5nqvrjeshhkkhi1.apps.googleusercontent.com';
+const GCAL_SCOPES    = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/tasks';
+
+let gcalTokenClient = null;
+let gcalAccessToken = localStorage.getItem('kb_gcal_token') || null;
+let gcalTokenExpiry = parseInt(localStorage.getItem('kb_gcal_expiry') || '0');
+
+// ═══════════════════════════════════════════
+//  HABIT TRACKER
+// ═══════════════════════════════════════════
+const DEFAULT_HABITS = [
+  { id: 'h1', name: 'Morning Meditation', icon: '🧘', time: '06:00' },
+  { id: 'h2', name: 'Morning Karm',       icon: '🙏', time: '07:00' },
+  { id: 'h3', name: 'Evening Karm',       icon: '🕯️', time: '18:00' },
+  { id: 'h4', name: 'Evening Meditation', icon: '🧘', time: '19:00' },
+  { id: 'h5', name: 'Introspection Sheet',icon: '📝', time: '21:00' },
+  { id: 'h6', name: 'Write Prayer to BAPA',icon: '✍️', time: '20:00' },
+  { id: 'h7', name: 'Walk',               icon: '🚶', time: '07:30' },
+  { id: 'h8', name: 'Listen to Satsang',  icon: '🎧', time: '08:00' },
+];
+
+let habits     = JSON.parse(localStorage.getItem('kb_habits')      || 'null') || DEFAULT_HABITS;
+let habitLogs  = JSON.parse(localStorage.getItem('kb_habit_logs')  || '{}');
+// habitLogs = { "2026-04-09": { "h1": true, "h3": true, ... } }
+
+function todayKey() { return new Date().toISOString().slice(0,10); }
+
+function getStreak(habitId) {
+  let streak = 0;
+  const d = new Date();
+  while (true) {
+    const key = d.toISOString().slice(0,10);
+    if (habitLogs[key]?.[habitId]) { streak++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+function toggleHabit(habitId) {
+  const today = todayKey();
+  if (!habitLogs[today]) habitLogs[today] = {};
+  habitLogs[today][habitId] = !habitLogs[today][habitId];
+  localStorage.setItem('kb_habit_logs', JSON.stringify(habitLogs));
+  renderHabits();
+  syncHabitsToGist();
+  // Celebrate if all done
+  const todayLog = habitLogs[today] || {};
+  const doneCount = habits.filter(h => todayLog[h.id]).length;
+  if (doneCount === habits.length) {
+    showToast('🔥 All Done!', 'All habits completed today! Jai Gurudev 🙏', 'success');
+    sendTelegram('🔥 <b>All habits completed today!</b>\n\nJai Gurudev 🙏\nYou have completed all 8 daily practices.');
+  }
+}
+
+function resetHabitsForToday() {
+  const today = todayKey();
+  habitLogs[today] = {};
+  localStorage.setItem('kb_habit_logs', JSON.stringify(habitLogs));
+  renderHabits();
+}
+
+function renderHabits() {
+  const grid = document.getElementById('habitGrid');
+  if (!grid) return;
+  const today    = todayKey();
+  const todayLog = habitLogs[today] || {};
+  const doneCount = habits.filter(h => todayLog[h.id]).length;
+
+  // Update progress
+  const pct = Math.round((doneCount / habits.length) * 100);
+  const progressEl = document.getElementById('habitProgressText');
+  const barEl      = document.getElementById('habitBarFill');
+  if (progressEl) progressEl.textContent = `${doneCount} of ${habits.length} done today`;
+  if (barEl) barEl.style.width = pct + '%';
+
+  const dateEl = document.getElementById('habitDate');
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+
+  grid.innerHTML = habits.map(h => {
+    const done   = !!todayLog[h.id];
+    const streak = getStreak(h.id);
+    return `<div class="habit-card ${done?'done':''}" onclick="toggleHabit('${h.id}')">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="habit-icon">${h.icon}</span>
+        <span class="habit-name">${h.name}</span>
+      </div>
+      <div class="habit-streak ${streak>=7?'hot':''}">
+        ${streak > 0 ? `🔥 ${streak} day streak` : 'No streak yet'}
+      </div>
+      <span class="habit-check">${done ? '✅' : '⬜'}</span>
+    </div>`;
+  }).join('');
+}
+
+async function syncHabitsToGist() {
+  const id = GIST_ID(), token = GIST_TOKEN();
+  if (!id || !token) return;
+  try {
+    await fetch(`https://api.github.com/gists/${id}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { 'kb_habit_logs.json': { content: JSON.stringify(habitLogs) } } })
+    });
+  } catch(e) {}
+}
+
+async function loadHabitsFromGist() {
+  const id = GIST_ID(), token = GIST_TOKEN();
+  if (!id) return;
+  try {
+    const r = await fetch(`https://api.github.com/gists/${id}`, {
+      headers: token ? { 'Authorization': `token ${token}` } : {}
+    });
+    const d = await r.json();
+    const content = d.files?.['kb_habit_logs.json']?.content;
+    if (content) {
+      const gistLogs = JSON.parse(content);
+      habitLogs = { ...gistLogs, ...habitLogs }; // merge, local takes priority for today
+      localStorage.setItem('kb_habit_logs', JSON.stringify(habitLogs));
+      renderHabits();
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+//  WEEKLY REVIEW
+// ═══════════════════════════════════════════
+let weeklyReviews = JSON.parse(localStorage.getItem('kb_reviews') || '[]');
+
+function saveWeeklyReview() {
+  const q1 = document.getElementById('rq1').value.trim();
+  const q2 = document.getElementById('rq2').value.trim();
+  const q3 = document.getElementById('rq3').value.trim();
+  if (!q1 && !q2 && !q3) { showToast('⚠️', 'Please answer at least one question', 'warn'); return; }
+
+  const review = {
+    id:      genId(),
+    date:    new Date().toISOString(),
+    week:    getWeekLabel(),
+    q1, q2, q3
+  };
+  weeklyReviews.unshift(review);
+  localStorage.setItem('kb_reviews', JSON.stringify(weeklyReviews));
+
+  // Clear form
+  ['rq1','rq2','rq3'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+
+  // Send summary to Telegram
+  let msg = `📖 <b>Weekly Review — ${review.week}</b>\n\n`;
+  if (q1) msg += `🌟 <b>What went well:</b>\n${q1.slice(0,200)}\n\n`;
+  if (q2) msg += `🌱 <b>Could be better:</b>\n${q2.slice(0,200)}\n\n`;
+  if (q3) msg += `🙏 <b>Next week intention:</b>\n${q3.slice(0,200)}`;
+  sendTelegram(msg);
+
+  renderWeeklyReviews();
+  showToast('📖 Review Saved', 'Weekly reflection saved and sent to Telegram', 'success');
+
+  // Sync to Gist
+  syncReviewsToGist();
+}
+
+function getWeekLabel() {
+  const now = new Date();
+  const start = new Date(now); start.setDate(now.getDate() - now.getDay() + 1);
+  const end   = new Date(start); end.setDate(start.getDate() + 6);
+  return `${start.toLocaleDateString('en-IN',{day:'numeric',month:'short'})} – ${end.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}`;
+}
+
+function renderWeeklyReviews() {
+  const el = document.getElementById('reviewHistory');
+  if (!el) return;
+  if (!weeklyReviews.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div style="font-size:0.78rem;color:#7c3aed;font-weight:600;margin-bottom:8px;letter-spacing:0.05em">PAST REVIEWS</div>' +
+    weeklyReviews.slice(0,5).map(r => `
+    <div class="review-entry">
+      <div class="review-entry-date">📅 ${r.week}</div>
+      ${r.q1?`<div class="review-entry-text">🌟 ${r.q1.slice(0,100)}${r.q1.length>100?'...':''}</div>`:''}
+      ${r.q3?`<div class="review-entry-text" style="margin-top:4px">🙏 ${r.q3.slice(0,100)}${r.q3.length>100?'...':''}</div>`:''}
+    </div>`).join('');
+}
+
+async function syncReviewsToGist() {
+  const id = GIST_ID(), token = GIST_TOKEN();
+  if (!id || !token) return;
+  try {
+    await fetch(`https://api.github.com/gists/${id}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { 'kb_reviews.json': { content: JSON.stringify(weeklyReviews) } } })
+    });
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════
+//  GOOGLE TASKS
+// ═══════════════════════════════════════════
+async function addToGoogleTasks(task) {
+  if (!gcalAccessToken || Date.now() > gcalTokenExpiry) return;
+  if (!document.getElementById('gtasksSyncEnabled')?.checked) return;
+  try {
+    // Get default task list
+    const listsResp = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists', {
+      headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+    });
+    const listsData = await listsResp.json();
+    const listId = listsData.items?.[0]?.id;
+    if (!listId) return;
+
+    const body = {
+      title: task.text,
+      notes: `Category: ${task.category} | Priority: ${task.priority} | Source: Utu's Board`,
+    };
+    if (task.due) body.due = new Date(task.due).toISOString();
+
+    await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${listId}/tasks`, {
+      method:  'POST',
+      headers: { 'Authorization': 'Bearer ' + gcalAccessToken, 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body)
+    });
+    addLog('✅', `Google Tasks: ${task.text.slice(0,40)}`);
+  } catch(e) { console.error('Google Tasks error:', e); }
+}
+
+// ═══════════════════════════════════════════
+//  NOTES & JOURNAL
+// ═══════════════════════════════════════════
+let notes = JSON.parse(localStorage.getItem('kb_notes') || '[]');
+
+function saveNotes() {
+  localStorage.setItem('kb_notes', JSON.stringify(notes));
+  // Sync notes to Gist too
+  syncNotesToGist();
+}
+
+async function syncNotesToGist() {
+  const id = GIST_ID(), token = GIST_TOKEN();
+  if (!id || !token) return;
+  try {
+    await fetch(`https://api.github.com/gists/${id}`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { 'kb_notes.json': { content: JSON.stringify(notes) } } })
+    });
+  } catch(e) {}
+}
+
+async function loadNotesFromGist() {
+  const id = GIST_ID(), token = GIST_TOKEN();
+  if (!id) return;
+  try {
+    const r = await fetch(`https://api.github.com/gists/${id}`, {
+      headers: token ? { 'Authorization': `token ${token}` } : {}
+    });
+    const d = await r.json();
+    const content = d.files?.['kb_notes.json']?.content;
+    if (content) {
+      const gistNotes = JSON.parse(content);
+      if (Array.isArray(gistNotes) && gistNotes.length > notes.length) {
+        notes = gistNotes;
+        localStorage.setItem('kb_notes', JSON.stringify(notes));
+        renderNotes();
+      }
+    }
+  } catch(e) {}
+}
+
+function addNoteFromDashboard() {
+  const text = prompt('📓 Add a note or journal entry:');
+  if (!text || !text.trim()) return;
+  const note = { id: genId(), text: text.trim(), created: new Date().toISOString(), source: 'dashboard' };
+  notes.unshift(note);
+  saveNotes();
+  renderNotes();
+  showToast('📓 Note saved', text.slice(0,50), 'success');
+}
+
+function deleteNote(id) {
+  notes = notes.filter(n => n.id !== id);
+  saveNotes();
+  renderNotes();
+}
+
+function clearDoneNotes() {
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  notes = notes.filter(n => new Date(n.created) > weekAgo);
+  saveNotes();
+  renderNotes();
+  showToast('🗑 Cleared', 'Notes older than 7 days removed', 'default');
+}
+
+function filterNotes() {
+  renderNotes(document.getElementById('noteSearch').value.toLowerCase());
+}
+
+function renderNotes(filter = '') {
+  const list = document.getElementById('notesList');
+  if (!list) return;
+  const filtered = filter ? notes.filter(n => n.text.toLowerCase().includes(filter)) : notes;
+  if (!filtered.length) {
+    list.innerHTML = filter
+      ? `<div class="empty-state">No notes matching "${filter}"</div>`
+      : '<div class="empty-state">No notes yet. Send /note [text] to @UtpalKarma_bot or <button onclick="addNoteFromDashboard()" class="btn btn-ghost" style="font-size:0.75rem;padding:3px 10px;display:inline-block">+ Add here</button></div>';
+    return;
+  }
+  list.innerHTML = filtered.map(n => `
+    <div class="note-item" id="note-${n.id}">
+      <div class="note-text">${escHtml(n.text)}</div>
+      <div class="note-meta">
+        <span>🕐 ${new Date(n.created).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+        ${n.source==='telegram'?'<span>📱 via Telegram</span>':'<span>💻 dashboard</span>'}
+        <button onclick="deleteNote('${n.id}')" class="task-btn del" style="margin-left:auto;opacity:0.5;font-size:0.75rem">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── SUNRISE / SUNSET ─────────────────────────
+async function fetchSunTimes() {
+  try {
+    // Get user location
+    const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej,{timeout:5000}));
+    const {latitude:lat, longitude:lng} = pos.coords;
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=sunrise,sunset&timezone=auto&forecast_days=1`);
+    const d = await r.json();
+    if (d.daily?.sunrise?.[0]) {
+      const rise = new Date(d.daily.sunrise[0]);
+      const set  = new Date(d.daily.sunset[0]);
+      window._sunTimes = {
+        sunrise: rise.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
+        sunset:  set.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
+        date:    new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})
+      };
+      render();
+    }
+  } catch(e) {
+    // Geolocation denied or failed — use Mumbai as default
+    try {
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=19.076&longitude=72.877&daily=sunrise,sunset&timezone=Asia%2FKolkata&forecast_days=1`);
+      const d = await r.json();
+      if (d.daily?.sunrise?.[0]) {
+        const rise = new Date(d.daily.sunrise[0]);
+        const set  = new Date(d.daily.sunset[0]);
+        window._sunTimes = {
+          sunrise: rise.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
+          sunset:  set.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
+          date:    new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'})
+        };
+        render();
+      }
+    } catch(e2) {}
+  }
+}
+
+function gcalInit() {
+  // Auto-restore session if token still valid
+  if (gcalAccessToken && Date.now() < gcalTokenExpiry) {
+    gcalShowSignedIn();
+    loadGcalEvents();
+  }
+}
+
+function gcalSignIn() {
+  // Use direct OAuth2 implicit flow — opens Google login in popup
+  const params = new URLSearchParams({
+    client_id:     GCAL_CLIENT_ID,
+    redirect_uri:  'https://utu72.github.io/utus-board/oauth.html',
+    response_type: 'token',
+    scope:         GCAL_SCOPES,
+    prompt:        'consent',
+    include_granted_scopes: 'true'
+  });
+
+  const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+  const popup = window.open(authUrl, 'google-auth', 'width=500,height=600,scrollbars=yes');
+
+  // Listen for token from popup
+  const handler = (event) => {
+    if (event.origin !== 'https://utu72.github.io') return;
+    if (event.data?.type === 'google-token') {
+      window.removeEventListener('message', handler);
+      gcalAccessToken = event.data.token;
+      gcalTokenExpiry = Date.now() + (event.data.expiresIn * 1000);
+      localStorage.setItem('kb_gcal_token',  gcalAccessToken);
+      localStorage.setItem('kb_gcal_expiry', String(gcalTokenExpiry));
+      gcalShowSignedIn();
+      loadGcalEvents();
+      showToast('✅ Google Connected', 'Calendar syncing now...', 'success');
+      if (popup) popup.close();
+    }
+  };
+  window.addEventListener('message', handler);
+}
+
+function gcalSignOut() {
+  if (gcalAccessToken) google.accounts.oauth2.revoke(gcalAccessToken);
+  gcalAccessToken = null; gcalTokenExpiry = 0;
+  localStorage.removeItem('kb_gcal_token');
+  localStorage.removeItem('kb_gcal_expiry');
+  document.getElementById('gcalSignedIn').style.display  = 'none';
+  document.getElementById('gcalSignedOut').style.display = 'block';
+  // Remove calendar events from board
+  tasks = tasks.filter(t => t.source !== 'gcal');
+  save(); render();
+  showToast('Google Calendar', 'Signed out', 'default');
+}
+
+function gcalShowSignedIn() {
+  document.getElementById('gcalSignedOut').style.display = 'none';
+  document.getElementById('gcalSignedIn').style.display  = 'block';
+  document.getElementById('gcalUserInfo').innerHTML = '✅ Connected to Google Calendar';
+}
+
+let gcalDays = parseInt(localStorage.getItem('kb_gcal_days') || '7');
+let gcalSelectedCals = JSON.parse(localStorage.getItem('kb_gcal_selected_cals') || '[]');
+let gcalAllCals = [];
+
+function setGcalDays(days, btn) {
+  gcalDays = days;
+  localStorage.setItem('kb_gcal_days', days);
+  document.querySelectorAll('[id^="days-btn-"]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadGcalEvents();
+}
+
+function renderCalendarList() {
+  const container = document.getElementById('gcalCalendarList');
+  if (!container || !gcalAllCals.length) return;
+  // catOptions built per-calendar inside the map below
+  container.innerHTML = gcalAllCals.map(cal => {
+    const isSelected = gcalSelectedCals.length === 0 || gcalSelectedCals.includes(cal.id);
+    const assignedCat = calCategoryMap[cal.id] || 'auto';
+    const catOpts = ['<option value="auto">🤖 Auto</option>']
+      .concat(CATEGORIES.map(c => `<option value="${c.id}" ${assignedCat===c.id?'selected':''}>${c.icon} ${c.id}</option>`))
+      .concat([`<option value="SKIP" ${assignedCat==='SKIP'?'selected':''}>❌ Skip</option>`])
+      .join('');
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" ${isSelected?'checked':''}
+        onchange="toggleCalendar('${cal.id}', this.checked)"
+        style="accent-color:${cal.backgroundColor||'#4285f4'};flex-shrink:0">
+      <span style="width:10px;height:10px;border-radius:50%;background:${cal.backgroundColor||'#4285f4'};flex-shrink:0"></span>
+      <span style="font-size:0.8rem;color:var(--ink2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cal.summary}</span>
+      <select onchange="assignCalendarToCategory('${cal.id}', this.value)"
+        style="font-size:0.72rem;padding:2px 6px;border-radius:6px;background:var(--cream);border:1px solid var(--border2);color:var(--ink2);flex-shrink:0">
+        ${catOpts}
+      </select>
+    </div>`;
+  }).join('');
+}
+
+function assignCalendarToCategory(calId, catId) {
+  if (catId === 'auto') {
+    delete calCategoryMap[calId];
+  } else {
+    calCategoryMap[calId] = catId;
+  }
+  localStorage.setItem('kb_cal_cat_map', JSON.stringify(calCategoryMap));
+  loadGcalEvents();
+}
+
+function toggleCalendar(calId, checked) {
+  if (checked) {
+    if (!gcalSelectedCals.includes(calId)) gcalSelectedCals.push(calId);
+  } else {
+    gcalSelectedCals = gcalSelectedCals.filter(id => id !== calId);
+  }
+  localStorage.setItem('kb_gcal_selected_cals', JSON.stringify(gcalSelectedCals));
+  loadGcalEvents();
+}
+
+async function loadGcalEvents() {
+  if (!gcalAccessToken || Date.now() > gcalTokenExpiry) { gcalSignIn(); return; }
+  const statusEl = document.getElementById('gcalStatus');
+  if (statusEl) statusEl.textContent = 'Syncing calendars...';
+
+  // Restore days button state
+  document.querySelectorAll('[id^="days-btn-"]').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById('days-btn-'+gcalDays);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  try {
+    // Get all calendars
+    const calResp = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+      headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+    });
+    const calData = await calResp.json();
+    if (!calData.items) { if(statusEl) statusEl.textContent = 'No calendars found.'; return; }
+
+    gcalAllCals = calData.items.filter(c => c.selected !== false);
+    // Auto-assign calendars to categories based on name matching
+    const autoMap = [
+      { keywords: ['gurudevshri', "gurudev"],         category: 'BAPA' },
+      { keywords: ['seva schedule', 'seva'],           category: 'Seva' },
+      { keywords: ['swadhyay'],                        category: 'Sadhana' },
+      { keywords: ['gujarati panchang', 'panchang'],   category: 'Panchang' },
+      { keywords: ['holidays in china', 'china'],      category: 'SKIP' },
+    ];
+    let mapChanged = false;
+    for (const cal of gcalAllCals) {
+      if (calCategoryMap[cal.id]) continue; // already mapped by user
+      const lower = (cal.summary || '').toLowerCase();
+      for (const rule of autoMap) {
+        if (rule.keywords.some(k => lower.includes(k))) {
+          calCategoryMap[cal.id] = rule.category;
+          mapChanged = true;
+          break;
+        }
+      }
+    }
+    if (mapChanged) localStorage.setItem('kb_cal_cat_map', JSON.stringify(calCategoryMap));
+    renderCalendarList();
+
+    const now     = new Date();
+    const maxTime = new Date(now.getTime() + gcalDays * 24 * 60 * 60 * 1000);
+    let allEvents = [];
+
+    // Fetch events from selected calendars only
+    for (const cal of gcalAllCals) {
+      // Skip unwanted calendars
+      if (calCategoryMap[cal.id] === 'SKIP') continue;
+      // Skip if not selected (when user has made a selection)
+      if (gcalSelectedCals.length > 0 && !gcalSelectedCals.includes(cal.id)) continue;
+      try {
+        const evResp = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events?` +
+          `timeMin=${now.toISOString()}&timeMax=${maxTime.toISOString()}&singleEvents=true&orderBy=startTime&maxResults=25`, {
+          headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+        });
+        const evData = await evResp.json();
+        if (evData.items) {
+          allEvents = allEvents.concat(evData.items.map(e => ({...e, calendarName: cal.summary, calendarColor: cal.backgroundColor, calendarId: cal.id})));
+        }
+      } catch(e) {}
+    }
+
+    // Remove old gcal tasks and add fresh ones
+    tasks = tasks.filter(t => t.source !== 'gcal');
+
+    for (const ev of allEvents) {
+      const startDt = ev.start?.dateTime || ev.start?.date;
+      if (!startDt) continue;
+      // Use calendar→category mapping, else auto-classify
+      const mappedCat = calCategoryMap[ev.calendarId || ''];
+      if (mappedCat === 'SKIP') continue; // Skip unwanted calendars
+      const category  = mappedCat || classifyTask(ev.summary || '');
+      tasks.push({
+        id:           'gcal_' + ev.id,
+        text:         ev.summary || '(No title)',
+        category,
+        due:          startDt,
+        priority:     'medium',
+        recur:        null,
+        done:         false,
+        created:      new Date().toISOString(),
+        aiClassified: true,
+        reminderSent: false,
+        gcalSent:     true,
+        gcalId:       ev.id,
+        gcalCalendar: ev.calendarName,
+        gcalLocation: ev.location || null,
+        gcalDesc:     ev.description ? ev.description.slice(0,120) : null,
+        source:       'gcal'
+      });
+    }
+
+    localStorage.setItem('kb_tasks', JSON.stringify(tasks));
+
+    // Extract next upcoming BAPA event for card header
+    const bapaEvents = allEvents.filter(e => calCategoryMap[e.calendarId] === 'BAPA')
+      .sort((a,b) => new Date(a.start?.dateTime||a.start?.date) - new Date(b.start?.dateTime||b.start?.date));
+    if (bapaEvents.length > 0) {
+      const next = bapaEvents[0];
+      const startDt = next.start?.dateTime || next.start?.date;
+      const evDate  = startDt ? new Date(startDt) : null;
+      window._bapaNextEvent = {
+        title:    next.summary || '',
+        time:     evDate ? evDate.toLocaleString('en-IN',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '',
+        location: next.location || ''
+      };
+    }
+
+    render();
+    fetchSunTimes();
+    const activeCals = gcalSelectedCals.length > 0 ? gcalSelectedCals.length : gcalAllCals.length;
+    if (statusEl) statusEl.textContent = `✓ ${allEvents.length} events from ${activeCals} calendar${activeCals>1?'s':''} · next ${gcalDays} days`;
+    showToast('📅 Synced', `${allEvents.length} events · ${gcalDays} days`, 'success');
+  } catch(e) {
+    if (statusEl) statusEl.textContent = 'Sync failed: ' + e.message;
+    console.error('GCal load error:', e);
+  }
+}
+
+async function addEventToGcal(task) {
+  if (!gcalAccessToken || Date.now() > gcalTokenExpiry) return;
+  if (!task.due || task.source === 'gcal') return;
+  try {
+    const start = new Date(task.due);
+    const end   = new Date(start.getTime() + 60 * 60 * 1000); // 1 hour duration
+    await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method:  'POST',
+      headers: { 'Authorization': 'Bearer ' + gcalAccessToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        summary:     task.text,
+        description: `Category: ${task.category} | Priority: ${task.priority} | Source: Utu's Board`,
+        start: { dateTime: start.toISOString() },
+        end:   { dateTime: end.toISOString() },
+        reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: 30 }] }
+      })
+    });
+    task.gcalSent = true;
+    addLog('📅', `Added to Google Calendar: ${task.text.slice(0,40)}`);
+  } catch(e) { console.error('GCal add event error:', e); }
+}
+
+function saveGcalSettings() {
+  settings.gcalShowEvents    = document.getElementById('gcalShowEvents')?.checked;
+  settings.gcalSyncTasks     = document.getElementById('gcalSyncTasks')?.checked;
+  settings.gtasksSyncEnabled = document.getElementById('gtasksSyncEnabled')?.checked;
+  localStorage.setItem('kb_settings', JSON.stringify(settings));
+}
+
+// ── GOOGLE TASKS ────────────────────────────
+async function addToGoogleTasks(task) {
+  if (!gcalAccessToken || Date.now() > gcalTokenExpiry) return;
+  if (!settings.gtasksSyncEnabled) return;
+  try {
+    // Get default task list
+    const listsResp = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=1', {
+      headers: { 'Authorization': 'Bearer ' + gcalAccessToken }
+    });
+    const lists = await listsResp.json();
+    const listId = lists.items?.[0]?.id;
+    if (!listId) return;
+    // Create task
+    const body = { title: task.text, notes: `Category: ${task.category} | Priority: ${task.priority}` };
+    if (task.due) body.due = new Date(task.due).toISOString();
+    await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${listId}/tasks`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + gcalAccessToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    addLog('✅', `Added to Google Tasks: ${task.text.slice(0,40)}`);
+  } catch(e) { console.error('Google Tasks error:', e); }
+}
+
+// ── SUNRISE / SUNSET for Panchang ────────────
+async function loadSunriseSunset() {
+  try {
+    // Use Mumbai coordinates as default (Utpal's location)
+    const lat = 19.076, lng = 72.877;
+    const today = new Date().toISOString().slice(0,10);
+    const r = await fetch(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&date=${today}&formatted=0`);
+    const d = await r.json();
+    if (d.status !== 'OK') return;
+    const rise = new Date(d.results.sunrise).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    const set  = new Date(d.results.sunset).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    // Store and show in Panchang card header
+    localStorage.setItem('kb_sun', JSON.stringify({rise, set, date: today}));
+    updatePanchangSun(rise, set);
+  } catch(e) {}
+}
+
+function updatePanchangSun(rise, set) {
+  const el = document.getElementById('panchangSunTimes');
+  if (el) el.innerHTML = `🌅 ${rise} &nbsp; 🌇 ${set}`;
+}
+
+window.addEventListener('load', () => {
+  gcalInit(); // restore session if token valid
+});
+</script>
+</body>
+</html>

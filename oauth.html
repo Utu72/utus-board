@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head><title>Connecting to Google...</title></head>
+<body>
+<p style="font-family:sans-serif;text-align:center;margin-top:40px;color:#666">
+  Connecting to Google Calendar...<br>
+  <small>This window will close automatically.</small>
+</p>
+<script>
+  // Extract access token from URL hash
+  const hash = window.location.hash.substring(1);
+  const params = new URLSearchParams(hash);
+  const token     = params.get('access_token');
+  const expiresIn = parseInt(params.get('expires_in') || '3600');
+  const error     = params.get('error');
+
+  if (token) {
+    // Send token back to parent dashboard
+    window.opener?.postMessage({
+      type: 'google-token',
+      token,
+      expiresIn
+    }, 'https://utu72.github.io');
+    document.body.innerHTML = '<p style="font-family:sans-serif;text-align:center;margin-top:40px;color:green">✅ Connected! Closing...</p>';
+    setTimeout(() => window.close(), 1000);
+  } else if (error) {
+    document.body.innerHTML = `<p style="font-family:sans-serif;text-align:center;margin-top:40px;color:red">❌ Error: ${error}<br><small>Close this window and try again.</small></p>`;
+  }
+</script>
+</body>
+</html>
